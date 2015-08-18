@@ -1,4 +1,6 @@
 # vi: ft=sh
+
+export DOTFILES=$HOME/dotfiles
 # Make vim the default editor
 export EDITOR="vim"
 
@@ -23,3 +25,5 @@ export GREP_OPTIONS="--color=auto"
 # Neovim exports
 export NVIM_TUI_ENABLE_CURSOR_SHAPE=1
 export PYTHONPATH=$PYTHONPATH:~/.virtualenvs/neovim/lib/python2.7/site-packages/
+
+export PATH=$PATH:$DOTFILES/bin
