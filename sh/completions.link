@@ -1,0 +1,5 @@
+# vi: ft=sh
+if which brew > /dev/null; then
+	source "$(brew --prefix)/etc/bash_completion"
+    source "$(brew --prefix)/etc/profile.d/z.sh"
+fi

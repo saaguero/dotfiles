@@ -1,0 +1,32 @@
+[ui]
+username = saaguero
+merge = vimdiff
+
+[alias]
+ra = log --graph --template '{rev}:{node|short} {desc|firstline}\n' -l 20
+la = log --graph --template '{rev}:{node|short} {desc|firstline}\n'
+st = status
+ci = commit -m
+co = update
+di = diff
+
+[extensions]
+purge =
+color =
+mq =
+extdiff =
+shelve = 
+
+[merge-tools]
+vimdiff.executable = vim
+vimdiff.args = -d $base $local $output $other -c "wincmd J"
+# Use the next one if you want just two files merge
+# vimdiff.args = -d $base $local $output $other +close +close
+
+[extdiff]
+cmd.vimdiff = vim
+opts.vimdiff = -f '+next' '+execute "DirDiff" argv(0) argv(1)'
+
+[hostfingerprints]
+bitbucket.org = 45:ad:ae:1a:cf:0e:73:47:06:07:e0:88:f5:cc:10:e5:fa:1c:f7:99
+

@@ -1,0 +1,75 @@
+# vi: ft=sh
+set -g prefix C-a
+unbind-key C-b
+bind C-a send-prefix
+
+set -g status-utf8 on
+set -g default-terminal "screen-256color"
+set -g history-limit 20000
+set -sg escape-time 0
+
+setw -g mode-mouse on
+set -g mouse-select-pane on
+set -g mouse-resize-pane on
+set -g mouse-select-window on
+
+# http://stackoverflow.com/questions/11404800/fix-vim-tmux-yank-paste-on-unnamed-register
+if-shell "uname | grep -q Darwin" "set -g default-command 'reattach-to-user-namespace -l bash'"
+
+# split window and fix path for tmux 1.9
+bind \ split-window -h -c "#{pane_current_path}"
+bind - split-window -v -c "#{pane_current_path}"
+
+# bind y setw synchronize-panes
+# pane movement shortcuts
+bind h select-pane -L
+bind j select-pane -D
+bind k select-pane -U
+bind l select-pane -R
+
+bind -r C-h select-window -t :-
+bind -r C-l select-window -t :+
+
+# Theme inspired from https://github.com/nicknisi/dotfiles
+tm_color_active=colour213
+tm_color_inactive=colour241
+tm_color_feature=colour4
+
+set -g status-left-length 32
+set -g status-right-length 150
+
+# default statusbar colors
+set-option -g status-fg $tm_color_active
+set-option -g status-bg default
+set-option -g status-attr default
+
+# default window title colors
+set-window-option -g window-status-fg $tm_color_inactive
+set-window-option -g window-status-bg default
+set -g window-status-format "#I #W"
+
+# active window title colors
+set-window-option -g window-status-current-fg $tm_color_active
+set-window-option -g window-status-current-bg default
+set-window-option -g  window-status-current-format "#[bold]#I #W"
+
+# pane border
+set-option -g pane-border-fg $tm_color_inactive
+set-option -g pane-active-border-fg $tm_color_active
+
+# message text
+set-option -g message-bg default
+set-option -g message-fg $tm_color_active
+
+# pane number display
+set-option -g display-panes-active-colour $tm_color_active
+set-option -g display-panes-colour $tm_color_inactive
+
+# clock
+set-window-option -g clock-mode-colour $tm_color_active
+
+tm_session_name="#[fg=$tm_color_feature,bold] #S"
+tm_date="#[fg=$tm_color_inactive] %R %d %b"
+
+set -g status-left $tm_session_name' '
+set -g status-right $tm_date

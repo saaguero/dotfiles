@@ -1,0 +1,31 @@
+# Allow alias expansion in non-interactive shells
+shopt -s expand_aliases
+
+# make less to handle ansi codes correctly
+alias less="less -r"
+
+# Enable aliases to be sudo’ed
+alias sudo='sudo '
+
+alias ip="dig +short myip.opendns.com @resolver1.opendns.com"
+alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
+
+alias up=". ~/dotfiles/bin/upto.sh"
+
+# Alias based on OS
+if [ "$(uname)" == "Darwin" ]; then
+    alias ls="command ls -G"
+    alias ll="ls -laF -G"
+    alias thg="/Applications/TortoiseHg.app/Contents/MacOS/thg"
+    alias path="greadlink -f"
+    alias vim="nvim"
+    alias vi="nvim"
+    alias stripcolor="sed 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g'"
+elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+    alias ls="command ls --color"
+    alias ll="ls -laF --color"
+    alias path="readlink -f"
+    alias stripcolor="sed 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' -r"
+    alias pbcopy='xclip -selection clipboard'
+    alias pbpaste='xclip -selection clipboard -o'
+fi

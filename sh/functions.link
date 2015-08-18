@@ -1,0 +1,75 @@
+# vi: ft=sh
+
+function shorturl() {
+    if [ -z "${1}" ]; then
+        echo "Usage: \`shorturl url\`"
+		return 1
+	fi
+    curl -s https://www.googleapis.com/urlshortener/v1/url \
+      -H 'Content-Type: application/json' \
+      -d '{"longUrl": '\"$1\"'}' | grep id | cut -d '"' -f 4
+}
+
+function print-ansi-colors()
+{
+    (
+        x=`tput op` y=`printf %$((${COLUMNS}-6))s`;
+        for i in {0..256};
+        do
+            o=00$i;
+            echo -e ${o:${#o}-3:3} `tput setaf $i;tput setab $i`${y// /=}$x;
+        done
+    )
+}
+
+function git-status-all-folders()
+{
+    ls -la |
+    grep "^d.*" |
+    awk '{print $9}' |
+    tail -n +4 |
+    while read line; do
+        echo $line && cd $line && git status -sb && cd ..;
+    done
+}
+
+# Fast Find with a custom database (tip from the book unix power tools)
+# Create the database with `find ~  | sed "s@^./@@" > ~/.fastfind`
+function ff()
+{
+    egrep $* $HOME/.fastfind | sed "s@^@$HOME/@"
+}
+
+# Function from https://github.com/driv/upto
+function upto() {
+	EXPRESSION="$1"
+	if [ -z "$EXPRESSION" ]; then
+		echo "A folder expression must be provided"
+	else
+		CURRENT_FOLDER="$(pwd)"
+		MATCHED_DIR=""
+		MATCHING=true
+
+		while [ "$MATCHING" = true ]; do
+			if [[ "$CURRENT_FOLDER" =~ "$EXPRESSION" ]]; then
+				MATCHED_DIR="$CURRENT_FOLDER"
+				CURRENT_FOLDER="$(dirname $CURRENT_FOLDER)"
+			else
+				MATCHING=false
+			fi
+		done
+		if [ -n "$MATCHED_DIR" ]; then
+			cd $MATCHED_DIR
+		else
+			echo "No Match."
+		fi
+	fi
+}
+
+# Use Git’s colored diff when available
+hash git &>/dev/null
+if [ $? -eq 0 ]; then
+	function diff() {
+		git diff --no-index --color-words --word-diff "$@"
+	}
+fi
