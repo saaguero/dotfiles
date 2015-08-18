@@ -13,6 +13,9 @@ set -g mouse-select-pane on
 set -g mouse-resize-pane on
 set -g mouse-select-window on
 
+set -g base-index 1
+setw -g pane-base-index 1
+
 # http://stackoverflow.com/questions/11404800/fix-vim-tmux-yank-paste-on-unnamed-register
 if-shell "uname | grep -q Darwin" "set -g default-command 'reattach-to-user-namespace -l bash'"
 
@@ -20,17 +23,17 @@ if-shell "uname | grep -q Darwin" "set -g default-command 'reattach-to-user-name
 bind \ split-window -h -c "#{pane_current_path}"
 bind - split-window -v -c "#{pane_current_path}"
 
-# smart pane switching with awareness of vim splits
-bind -n C-h run "(tmux display-message -p '#{pane_current_command}' | grep -iq vim && tmux send-keys C-h) || tmux select-pane -L"
-bind -n C-j run "(tmux display-message -p '#{pane_current_command}' | grep -iq vim && tmux send-keys C-j) || tmux select-pane -D"
-bind -n C-k run "(tmux display-message -p '#{pane_current_command}' | grep -iq vim && tmux send-keys C-k) || tmux select-pane -U"
-bind -n C-l run "(tmux display-message -p '#{pane_current_command}' | grep -iq vim && tmux send-keys C-l) || tmux select-pane -R"
+bind h select-pane -L
+bind j select-pane -D
+bind k select-pane -U
+bind l select-pane -R
 
-# preserve clear screen with another map
-bind C-l send-keys 'C-l'
-bind l send-keys 'C-l'
+bind -r C-p select-window -t :-
+bind -r C-n select-window -t :+
 
+#
 # Theme inspired from https://github.com/nicknisi/dotfiles
+#
 tm_color_active=colour213
 tm_color_inactive=colour241
 tm_color_feature=colour4
