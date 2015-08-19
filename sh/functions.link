@@ -73,3 +73,44 @@ if [ $? -eq 0 ]; then
 		git diff --no-index --color-words --word-diff "$@"
 	}
 fi
+
+# Some utils if FZF is available
+hash fzf &>/dev/null
+if [ $? -eq 0  ]; then
+    # edit file in preferred EDITOR, defaults to vim
+    fe() {
+      local file
+      file=$(fzf --query="$1" --select-1 --exit-0)
+      [ -n "$file" ] && ${EDITOR:-vim} "$file"
+    }
+
+    # browse git commit history, enter to show changes
+    fshow() {
+      local out sha q
+      while out=$(
+          git log --decorate=short --graph --oneline --color=always |
+          fzf --ansi --multi --no-sort --reverse --query="$q" --print-query); do
+        q=$(head -1 <<< "$out")
+        while read sha; do
+          [ -n "$sha" ] && git show --color=always $sha | less -R
+        done < <(sed '1d;s/^[^a-z0-9]*//;/^$/d' <<< "$out" | awk '{print $1}')
+      done
+    }
+
+    # browse chrome history
+    fchrome() {
+      local cols sep
+      cols=$(( COLUMNS / 3 ))
+      sep='{{::}}'
+
+      # Copy History DB to circumvent the lock
+      # - See http://stackoverflow.com/questions/8936878 for the file path
+      cp -f ~/Library/Application\ Support/Google/Chrome/Default/History /tmp/h
+
+      sqlite3 -separator $sep /tmp/h \
+        "select substr(title, 1, $cols), url
+         from urls order by last_visit_time desc" |
+      awk -F $sep '{printf "%-'$cols's  \x1b[36m%s\n", $1, $2}' |
+      fzf --ansi --multi | sed 's#.*\(https*://\)#\1#' | xargs open
+    }
+fi
