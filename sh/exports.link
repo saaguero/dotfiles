@@ -1,8 +1,13 @@
 # vi: ft=sh
 
 export DOTFILES=$HOME/dotfiles
+
 # Make vim the default editor
-export EDITOR="vim"
+if [ "$(uname)" == "Darwin" ]; then
+    export EDITOR='mvim -v'
+elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+    export EDITOR='gvim -v'
+fi
 
 # Larger bash history (allow 32³ entries; default is 500)
 export HISTSIZE=32768
@@ -20,10 +25,15 @@ export LESS_TERMCAP_md="$ORANGE"
 export MANPAGER="less -X"
 
 # Always enable colored `grep` output
-export GREP_OPTIONS="--color=auto"
+if [ "$(uname)" == "Darwin" ]; then
+    export GREP_OPTIONS="--color=auto"
+fi
 
 # Neovim exports
-export NVIM_TUI_ENABLE_CURSOR_SHAPE=1
-export PYTHONPATH=$PYTHONPATH:~/.virtualenvs/neovim/lib/python2.7/site-packages/
+hash nvim &>/dev/null
+if [ $? -eq 0 ]; then
+    export NVIM_TUI_ENABLE_CURSOR_SHAPE=1
+    export PYTHONPATH=$PYTHONPATH:~/.virtualenvs/neovim/lib/python2.7/site-packages/
+fi
 
 export PATH=$PATH:$DOTFILES/bin

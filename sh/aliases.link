@@ -18,14 +18,17 @@ if [ "$(uname)" == "Darwin" ]; then
     alias ll="ls -laF -G"
     alias thg="/Applications/TortoiseHg.app/Contents/MacOS/thg"
     alias path="greadlink -f"
-    alias vim="nvim"
-    alias vi="nvim"
+    alias vim="mvim -v"
+    alias vi="mvim -v"
     alias stripcolor="sed 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g'"
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     alias ls="command ls --color"
     alias ll="ls -laF --color"
     alias path="readlink -f"
+    alias vim="gvim -v"
+    alias vi="gvim -v"
     alias stripcolor="sed 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' -r"
     alias pbcopy='xclip -selection clipboard'
     alias pbpaste='xclip -selection clipboard -o'
+    alias grep='grep --color'
 fi
