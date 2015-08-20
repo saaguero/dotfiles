@@ -3,18 +3,19 @@ export TERM=screen-256color
 
 MAGENTA=$(tput setaf 9)
 ORANGE=$(tput setaf 172)
+YELLOW=$(tput setaf 193)
 GREEN=$(tput setaf 190)
 PURPLE=$(tput setaf 141)
 WHITE=$(tput setaf 243)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
 
-function parse_git_branch() {
+parse_git_branch() {
     git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e "s/* \(.*\)/\1/"
 }
 
 # Adapted from https://gist.github.com/brettstimmerman/382508
-function parse_svn_branch() {
+parse_svn_branch() {
     if [[ -d ".svn" ]]; then
         local chunk url=$(svn info | awk '/^URL: .*/{print $2}')
 
@@ -38,7 +39,7 @@ function parse_svn_branch() {
 
 branch_info="\[$BOLD\]\[$WHITE\]\$([[ -n \$(git branch 2> /dev/null) || -d .svn ]] && echo \" -> \")\[$RESET\]\[$PURPLE\]\$(parse_git_branch)\$(parse_svn_branch)"
 
-export PS1="\n\[$GREEN\]\w$branch_info\[$WHITE\]\[$BOLD\]\n λ \[$RESET\]"
+export PS1="\n\[$YELLOW\]\u@\h: \[$GREEN\]\w$branch_info\[$WHITE\]\[$BOLD\]\n λ \[$RESET\]"
 
 export PS2="\[$ORANGE\]→ \[$RESET\]"
 
