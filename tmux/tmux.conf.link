@@ -1,4 +1,10 @@
 # vi: ft=sh
+
+# variables
+is_vim='echo "#{pane_current_command}" | grep -iqE "(^|\/)g?(view|n?vim?)(diff)?$"'
+is_osx='uname | grep -iqE Darwin'
+is_linux='uname | grep -iqE Linux'
+
 set -g prefix 'C-\'
 unbind-key C-b
 bind 'C-\' send-prefix
@@ -16,11 +22,7 @@ set -g mouse-select-window on
 set -g base-index 1
 setw -g pane-base-index 1
 
-# http://stackoverflow.com/questions/11404800/fix-vim-tmux-yank-paste-on-unnamed-register
-if-shell "uname | grep -q Darwin" "set -g default-command 'reattach-to-user-namespace -l bash'"
-
 # Smart pane switching with awareness of vim splits
-is_vim='echo "#{pane_current_command}" | grep -iqE "(^|\/)g?(view|n?vim?)(diff)?$"'
 bind -n C-h if-shell "$is_vim" "send-keys C-h" "select-pane -L"
 bind -n C-j if-shell "$is_vim" "send-keys C-j" "select-pane -D"
 bind -n C-k if-shell "$is_vim" "send-keys C-k" "select-pane -U"
@@ -38,6 +40,23 @@ bind l send-keys 'C-l'
 # split window and fix path for tmux 1.9
 bind \ split-window -h -c "#{pane_current_path}"
 bind - split-window -v -c "#{pane_current_path}"
+
+# Improve copy mode & system clipboard
+# https://robots.thoughtbot.com/tmux-copy-paste-on-os-x-a-better-future
+setw -g mode-keys vi
+
+# http://stackoverflow.com/questions/11404800/fix-vim-tmux-yank-paste-on-unnamed-register
+if-shell "$is_osx" "set -g default-command 'reattach-to-user-namespace -l bash'"
+
+# Setup 'v' to begin selection as in Vim
+bind -t vi-copy v begin-selection
+if-shell "$is_osx" "bind -t vi-copy y copy-pipe 'reattach-to-user-namespace pbcopy'"
+if-shell "$is_linux" "bind -t vi-copy y copy-pipe 'xclip -in -selection clipboard'"
+
+# Update default binding of 'Enter' to also use copy-pipe
+unbind -t vi-copy Enter
+if-shell "$is_osx" "bind -t vi-copy Enter copy-pipe 'reattach-to-user-namespace pbcopy'"
+if-shell "$is_linux" "bind -t vi-copy Enter copy-pipe 'xclip -in -selection clipboard'"
 
 #
 # Theme inspired from https://github.com/nicknisi/dotfiles
