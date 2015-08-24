@@ -30,12 +30,12 @@ bind -n C-l if-shell "$is_vim" "send-keys C-l" "select-pane -R"
 bind -n C-\ if-shell "$is_vim" "send-keys C-\\" "select-pane -l"
 
 # Easy window switching
-bind -n M-h select-window -t :-
-bind -n M-l select-window -t :+
+bind -n C-M-h select-window -t :-
+bind -n C-M-l select-window -t :+
 
 # Preserve clear screen
+bind -n M-l send-keys 'C-l'
 bind C-l send-keys 'C-l'
-bind l send-keys 'C-l'
 
 # split window and fix path for tmux 1.9
 bind \ split-window -h -c "#{pane_current_path}"
