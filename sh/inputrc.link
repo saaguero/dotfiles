@@ -24,4 +24,9 @@ set convert-meta off
 "\C-t": forward-search-history
 
 # C-k is useful in tmux for switching panes, let's preserve kill-line
-"\C-i": kill-line
+"\ek": kill-line
+
+# From http://www.ukuug.org/events/linux2003/papers/bash_tips/
+$if Bash
+  Space: magic-space
+$endif
