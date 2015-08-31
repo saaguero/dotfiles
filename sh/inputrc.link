@@ -23,9 +23,6 @@ set convert-meta off
 # Sacrifice transpose-chars keymap in order to have forward-search-history
 "\C-t": forward-search-history
 
-# C-k is useful in tmux for switching panes, let's preserve kill-line
-"\ek": kill-line
-
 # From http://www.ukuug.org/events/linux2003/papers/bash_tips/
 $if Bash
   Space: magic-space
