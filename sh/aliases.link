@@ -25,8 +25,8 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     alias ls="command ls --color"
     alias ll="ls -laF --color"
     alias path="readlink -f"
-    alias vim="gvim -v"
-    alias vi="gvim -v"
+    alias vim="gvim -v -X"
+    alias vi="gvim -v -X"
     alias stripcolor="sed 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' -r"
     alias pbcopy='xclip -selection clipboard'
     alias pbpaste='xclip -selection clipboard -o'
