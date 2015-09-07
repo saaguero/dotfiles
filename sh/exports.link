@@ -40,3 +40,5 @@ if [ $? -eq 0 ]; then
 fi
 
 export PATH=$PATH:$DOTFILES/bin
+
+export WORKON_HOME=$HOME/virtualenvs
