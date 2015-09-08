@@ -66,6 +66,14 @@ function upto() {
 	fi
 }
 
+# Clean-up tmux window name after returning from a ssh connection
+function ssh() {
+    command ssh "$@"
+    if [ -n "$TMUX" ]; then
+        tmux setw automatic-rename 2>&1 > /dev/null
+    fi
+}
+
 # Use Git’s colored diff when available
 hash git &>/dev/null
 if [ $? -eq 0 ]; then
