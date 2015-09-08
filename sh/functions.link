@@ -66,9 +66,14 @@ function upto() {
 	fi
 }
 
-# Clean-up tmux window name after returning from a ssh connection
+# Improve tmux window title when sshing
 function ssh() {
+    if [ -n "$TMUX" ]; then
+        tmux rename-window $*
+    fi
+
     command ssh "$@"
+
     if [ -n "$TMUX" ]; then
         tmux setw automatic-rename 2>&1 > /dev/null
     fi

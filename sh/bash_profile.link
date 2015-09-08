@@ -14,8 +14,3 @@ shopt -s histappend
 PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
 # Autocorrect typos in path names when using `cd`
 shopt -s cdspell
-
-# Rename tmux window when connected through ssh
-if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
-    tmux rename-window "$HOSTNAME"
-fi
