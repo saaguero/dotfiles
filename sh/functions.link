@@ -69,10 +69,24 @@ function upto() {
 # Improve tmux window title when sshing
 function ssh() {
     if [ -n "$TMUX" ]; then
-        tmux rename-window $*
+        tmux rename-window "$@"
     fi
 
     command ssh "$@"
+
+    if [ -n "$TMUX" ]; then
+        tmux setw automatic-rename 2>&1 > /dev/null
+    fi
+}
+
+# Improve tmux window title when sshing with sspass
+function sshpass() {
+    if [ -n "$TMUX" ]; then
+        A=$*
+        tmux rename-window "${A##* }"
+    fi
+
+    command sshpass "$@"
 
     if [ -n "$TMUX" ]; then
         tmux setw automatic-rename 2>&1 > /dev/null
