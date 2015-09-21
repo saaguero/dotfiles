@@ -37,6 +37,8 @@ bind -n C-M-h select-window -t :-
 bind -n C-M-l select-window -t :+
 bind -n C-S-Left swap-window -t -1
 bind -n C-S-Right swap-window -t +1
+bind -n C-S-Up switch-client -p
+bind -n C-S-Down switch-client -n
 
 # Preserve clear screen
 bind -n M-l send-keys 'C-l'
