@@ -1,5 +1,5 @@
 # vi: ft=sh
-export TERM=screen-256color
+export TERM=xterm-256color
 
 MAGENTA=$(tput setaf 9)
 ORANGE=$(tput setaf 172)
