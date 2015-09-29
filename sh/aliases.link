@@ -4,6 +4,9 @@ shopt -s expand_aliases
 # make less to handle ansi codes correctly
 alias less="less -r"
 
+# force TERM for man as otherwise it doesn't highlight propertly in tmux
+alias man="TERM=xterm man"
+
 # Enable aliases to be sudo’ed
 alias sudo='sudo '
 
