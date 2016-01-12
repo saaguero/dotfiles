@@ -66,33 +66,6 @@ function upto() {
 	fi
 }
 
-# Improve tmux window title when sshing
-function ssh() {
-    if [ -n "$TMUX" ]; then
-        tmux rename-window "$@"
-    fi
-
-    command ssh "$@"
-
-    if [ -n "$TMUX" ]; then
-        tmux setw automatic-rename 2>&1 > /dev/null
-    fi
-}
-
-# Improve tmux window title when sshing with sspass
-function sshpass() {
-    if [ -n "$TMUX" ]; then
-        A=$*
-        tmux rename-window "${A##* }"
-    fi
-
-    command sshpass "$@"
-
-    if [ -n "$TMUX" ]; then
-        tmux setw automatic-rename 2>&1 > /dev/null
-    fi
-}
-
 # Use Git’s colored diff when available
 hash git &>/dev/null
 if [ $? -eq 0 ]; then
