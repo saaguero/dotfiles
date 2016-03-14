@@ -28,7 +28,7 @@ parse_git_branch() {
 
 # Adapted from https://gist.github.com/brettstimmerman/382508
 parse_svn_branch() {
-    if [[ $(upsearch .svn ) ]]; then
+    if [[ $(upsearch .svn ) && $(svn info 2>/dev/null) ]]; then
         local chunk url=$(svn info | awk '/^URL: .*/{print $2}')
 
         echo $url | grep -q "/trunk\b"
