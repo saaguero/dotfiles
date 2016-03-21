@@ -15,10 +15,14 @@ set -sg escape-time 0
 
 set -g status off
 
-setw -g mode-mouse on
-set -g mouse-select-pane on
-set -g mouse-resize-pane on
-set -g mouse-select-window on
+setw -g mouse on
+
+# Scroll workaround for tmux 2.1
+bind -n WheelUpPane if-shell -F -t = "#{mouse_any_flag}" "send-keys -M" "if -Ft= '#{pane_in_mode}' 'send-keys -M' 'select-pane -t=; copy-mode -e; send-keys -M'"
+bind -n WheelDownPane select-pane -t= \; send-keys -M
+bind -n C-WheelUpPane select-pane -t= \; copy-mode -e \; send-keys -M
+bind -t vi-copy    C-WheelUpPane   halfpage-up
+bind -t vi-copy    C-WheelDownPane halfpage-down
 
 set -g base-index 1
 setw -g pane-base-index 1
