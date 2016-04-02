@@ -1,3 +1,4 @@
+# vi: ft=readline
 set completion-ignore-case on
 set show-all-if-ambiguous on
 set mark-symlinked-directories on

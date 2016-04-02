@@ -1,5 +1,4 @@
-# vi: ft=sh
-
+#!/bin/bash
 function shorturl() {
     if [ -z "${1}" ]; then
         echo "Usage: \`shorturl url\`"

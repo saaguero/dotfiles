@@ -1,3 +1,4 @@
+#!/bin/bash
 # Allow alias expansion in non-interactive shells
 shopt -s expand_aliases
 

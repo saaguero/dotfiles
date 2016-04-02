@@ -36,6 +36,8 @@
 --langmap=markdown:.md
 --regex-markdown=/^#+[ \t](.*$)/\1/h,heading,headings/
 
+--langmap=sh:.link
+
 --exclude=.git
 --exclude=.svn
 --exclude=.hg

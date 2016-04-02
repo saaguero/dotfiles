@@ -1,5 +1,4 @@
-# vi: ft=sh
-
+#!/bin/bash
 export DOTFILES=$HOME/dotfiles
 
 # Make vim the default editor
@@ -33,12 +32,14 @@ if [ "$(uname)" == "Darwin" ]; then
 fi
 
 # Neovim exports
-hash nvim &>/dev/null
-if [ $? -eq 0 ]; then
+if hash nvim &>/dev/null; then
     export NVIM_TUI_ENABLE_CURSOR_SHAPE=1
     export PYTHONPATH=$PYTHONPATH:~/.virtualenvs/neovim/lib/python2.7/site-packages/
 fi
 
-export PATH=$PATH:$DOTFILES/bin
+# FZF export
+if hash fzf &>/dev/null && hash ag &>/dev/null; then
+    export FZF_DEFAULT_COMMAND='ag -g ""'
+fi
 
 export WORKON_HOME=$HOME/virtualenvs

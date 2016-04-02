@@ -1,4 +1,4 @@
-# vi: ft=sh
+#!/bin/bash
 
 # variables
 is_osx='uname | grep -iqE Darwin'

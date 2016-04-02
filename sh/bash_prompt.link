@@ -1,4 +1,4 @@
-# vi: ft=sh
+#!/bin/bash
 export TERM=screen-256color
 
 MAGENTA=$(tput setaf 9)
