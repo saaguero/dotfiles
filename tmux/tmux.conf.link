@@ -13,8 +13,6 @@ set -g default-terminal "screen-256color"
 set -g history-limit 20000
 set -sg escape-time 0
 
-set -g status off
-
 setw -g mouse on
 
 # Scroll workaround for tmux 2.1
