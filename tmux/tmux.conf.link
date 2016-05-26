@@ -4,9 +4,9 @@
 is_osx='uname | grep -iqE Darwin'
 is_linux='uname | grep -iqE Linux'
 
-set -g prefix 'C-\'
+set -g prefix 'C-Space'
 unbind-key C-b
-bind 'C-\' send-prefix
+bind 'C-Space' send-prefix
 
 set -g status-utf8 on
 set -g default-terminal "screen-256color"
