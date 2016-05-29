@@ -1,0 +1,10 @@
+BoldAsFont=-1
+CursorType=block
+CursorBlinks=no
+Font=Consolas
+FontSmoothing=full
+FontHeight=11
+CtrlShiftShortcuts=yes
+RightClickAction=paste
+Scrollbar=none
+PgUpDnScroll=yes
