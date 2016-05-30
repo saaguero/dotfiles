@@ -2,10 +2,12 @@
 export DOTFILES=$HOME/dotfiles
 
 # Make vim the default editor
-if [ "$(uname)" == "Darwin" ]; then
-    export EDITOR='mvim -v'
-elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+if hash gvim &>/dev/null; then
     export EDITOR='gvim -v'
+elif hash mvim &>/dev/null; then
+    export EDITOR='mvim -v'
+else
+    export EDITOR='vim'
 fi
 
 # Larger bash history (allow 32³ entries; default is 500)
@@ -43,3 +45,5 @@ if hash fzf &>/dev/null && hash ag &>/dev/null; then
 fi
 
 export WORKON_HOME=$HOME/virtualenvs
+
+export PATH="$PATH:~/dotfiles/bin"

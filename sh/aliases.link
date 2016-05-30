@@ -25,12 +25,10 @@ if [ "$(uname)" == "Darwin" ]; then
     alias vim="mvim -v"
     alias vi="mvim -v"
     alias stripcolor="sed 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g'"
-
-elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+else
     alias ls="command ls --color"
     alias ll="ls -laF --color"
     alias path="readlink -f"
-    alias vi="gvim -v -X"
     alias stripcolor="sed 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' -r"
     alias pbcopy='xclip -selection clipboard'
     alias pbpaste='xclip -selection clipboard -o'
