@@ -2,6 +2,17 @@
 # Load the shell dotfiles, and then some:
 # * ~/.path can be used to extend `$PATH`.
 # * ~/.extra can be used for other settings you don’t want to commit.
+
+# If you want to troubleshoot (or simply profile) your bash scripts
+# uncomment both "profiling start" & "profiling end" sections
+# source: http://stackoverflow.com/a/5015179/854676
+
+# profiling start
+# date "+%s.%N"
+# PS4='+ $(date "+%s.%N")\011 '
+# exec 3>&2 2>/tmp/bashstart.$$.log
+# set -x
+
 for file in ~/.{path,bash_prompt,exports,aliases,functions,extra,completions}; do
 	[ -r "$file" ] && [ -f "$file" ] && source "$file"
 done
@@ -18,3 +29,7 @@ shopt -s cdspell
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 [ -f ~/dotfiles/bin/z.sh ] && source ~/dotfiles/bin/z.sh
+
+# profiling end
+# set +x
+# exec 2>&3 3>&-
