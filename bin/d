@@ -1,0 +1,93 @@
+#!/bin/bash
+
+PREFERENCE_GENERAL=meld_fun,vim_fun
+PREFERENCE_CONSOLE=vim_fun,diff_fun
+PREFERENCE_GUI=meld_fun
+
+vim_fun() {
+  vimdiff2=$(mktemp)
+  echo 'vim -d "$6" "$7"' > "$vimdiff2"
+  chmod +x $vimdiff2
+  svn diff --diff-cmd=$vimdiff2
+  # git difftool  --tool=vimdiff
+  # hg extdiff -p vimdiff
+}
+
+meld_fun() {
+  meld . &>/dev/null &
+  # svn diff --diff-cmd=meld
+  # git difftool  --tool=meld -y
+  # hg extdiff -p meld
+}
+
+diff_fun() {
+  svn diff
+  # git diff
+  # hg diff
+}
+
+run_diff_tool() {
+  IFS=","
+  for tool in $1; do
+    if hash ${tool::-4} &>/dev/null; then
+      $tool
+      exit
+    fi
+  done
+}
+
+if [ "$1" == '-c' ]; then
+  run_diff_tool "$PREFERENCE_CONSOLE"
+elif [ "$1" == '-g' ]; then
+  run_diff_tool "$PREFERENCE_GUI"
+else
+  run_diff_tool "$PREFERENCE_GENERAL"
+fi
+
+echo "No diff is possible as no preferred diff-tool has been found"
+
+
+# TODO: detect svn, git or hg
+# if [ ! -z "$1" ]; then
+#   if hash vimdiff &>/dev/null; then
+#     vimdiff2=$(mktemp)
+#     echo 'vim -d "$6" "$7"' > "$vimdiff2"
+#     chmod +x $vimdiff2
+#     svn diff --diff-cmd=$vimdiff2
+#     # git difftool  --tool=vimdiff
+#     # hg extdiff -p vimdiff
+#   elif hash colordiff &>/dev/null; then
+#     # elif hash colordiff &>/dev/null && is_svn; then
+#     svn diff --diff-cmd=colordiff
+#   else
+#     svn diff
+#     # git diff
+#     # hg diff
+#   fi
+# else
+#   if hash meld &>/dev/null; then
+#     meld . &>/dev/null &
+#     # svn diff --diff-cmd=meld
+#     # git difftool  --tool=meld -y
+#     # hg extdiff -p meld
+#   elif hash vimdiff &>/dev/null; then
+#     vimdiff2=$(mktemp)
+#     echo 'vim -d "$6" "$7"' > "$vimdiff2"
+#     chmod +x $vimdiff2
+#     svn diff --diff-cmd=$vimdiff2
+#     # git difftool  --tool=vimdiff
+#     # hg extdiff -p vimdiff
+#   elif hash rabbitvcs &>/dev/null; then
+#     # elif hash rabbitvcs &>/dev/null && (is_svn || is_git); then
+#     # not working for hg...
+#     rabbitvcs diff
+#   elif hash colordiff &>/dev/null; then
+#     # elif hash colordiff &>/dev/null && is_svn; then
+#     svn diff --diff-cmd=colordiff
+#   else
+#     svn diff
+#     # git diff
+#     # hg diff
+#   fi
+# fi
+
