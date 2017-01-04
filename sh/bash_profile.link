@@ -30,6 +30,9 @@ shopt -s cdspell
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 [ -f ~/dotfiles/bin/z.sh ] && source ~/dotfiles/bin/z.sh
 
+# disable ctrl-s "freeze" feature
+stty -ixon
+
 # profiling end
 # set +x
 # exec 2>&3 3>&-
