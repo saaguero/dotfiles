@@ -21,6 +21,9 @@ bind -n C-WheelUpPane select-pane -t= \; copy-mode -e \; send-keys -M
 bind -t vi-copy    C-WheelUpPane   halfpage-up
 bind -t vi-copy    C-WheelDownPane halfpage-down
 
+# Start copy mode upon PageUp
+bind -n PPage if-shell -F "#{alternate_on}" "send-keys PPage" "copy-mode -e; send-keys PPage"
+
 # Allow C-left and C-right word navigation
 setw -g xterm-keys on
 
