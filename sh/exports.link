@@ -41,7 +41,7 @@ fi
 
 # FZF export
 if hash fzf &>/dev/null && hash ag &>/dev/null; then
-    export FZF_DEFAULT_COMMAND='ag -g ""'
+    export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
 fi
 
 export WORKON_HOME=$HOME/virtualenvs

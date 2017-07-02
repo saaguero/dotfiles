@@ -18,3 +18,8 @@ tags
 
 # files result of "hg revert"
 *.orig
+
+# ignore vcs folders
+.git
+.svn
+.hg
