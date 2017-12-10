@@ -34,8 +34,11 @@ else
     alias pbpaste='xclip -selection clipboard -o'
     alias grep='grep --color'
 
-    if hash gvim &>/dev/null; then
-        alias vim="gvim -v -X"
+    if hash vim &>/dev/null; then
+        alias vi="vim"
+    elif hash gvim &>/dev/null; then
+        alias vim="gvim -v"
+        alias vi="gvim -v"
     fi
 
     if hash espeak &>/dev/null; then

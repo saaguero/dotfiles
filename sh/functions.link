@@ -50,7 +50,7 @@ function upto() {
 		MATCHING=true
 
 		while [ "$MATCHING" = true ]; do
-			if [[ "$CURRENT_FOLDER" =~ "$EXPRESSION" ]]; then
+			if [[ "$CURRENT_FOLDER" =~ $EXPRESSION ]]; then
 				MATCHED_DIR="$CURRENT_FOLDER"
 				CURRENT_FOLDER="$(dirname $CURRENT_FOLDER)"
 			else
@@ -107,4 +107,23 @@ make-targets() {
 
 md-to-html() {
   pandoc --from markdown_github --to html --standalone "$1" -o "$1".html
+}
+
+# adapted from https://github.com/baskerville/bin
+count-chars-frequency() {
+  if [ -n "$@" ]; then
+    cat "$@" | perl -pe 's/(.)/$1\n/g' | sort | uniq -c | sort -nr
+  fi
+}
+
+# adapted from https://github.com/baskerville/bin
+cp-progress() {
+  for pid in $(pgrep -x cp) ; do
+    for fd in 4 3 ; do
+      symlink="/proc/${pid}/fd/${fd}"
+      if [ -L "$symlink" ] ; then
+        ls -sh "$(readlink "$symlink")"
+      fi
+    done
+  done
 }
