@@ -1,25 +1,20 @@
-#!/bin/bash
+#
+# Custom settings
+#
 
-# variables
-is_osx='uname | grep -iqE Darwin'
-is_linux='uname | grep -iqE Linux'
-
+# Better prefix key
 set -g prefix 'C-Space'
 unbind-key C-b
 bind 'C-Space' send-prefix
 
-set -g default-terminal "screen-256color"
 set -g history-limit 20000
-set -sg escape-time 0
-
 setw -g mouse on
+setw -g mode-keys vi
 
-# Scroll workaround for tmux 2.1
+# Mouse scroll workaround
 bind -n WheelUpPane if-shell -F -t = "#{mouse_any_flag}" "send-keys -M" "if -Ft= '#{pane_in_mode}' 'send-keys -M' 'select-pane -t=; copy-mode -e; send-keys -M'"
 bind -n WheelDownPane select-pane -t= \; send-keys -M
 bind -n C-WheelUpPane select-pane -t= \; copy-mode -e \; send-keys -M
-bind -t vi-copy    C-WheelUpPane   halfpage-up
-bind -t vi-copy    C-WheelDownPane halfpage-down
 
 # Start copy mode upon PageUp
 bind -n PPage if-shell -F "#{alternate_on}" "send-keys PPage" "copy-mode -e; send-keys PPage"
@@ -36,32 +31,16 @@ bind -n M-l select-pane -R
 # Easy window switching & swapping
 bind -n M-[ select-window -t :-
 bind -n M-] select-window -t :+
-
 bind -n C-S-Left swap-window -t -1
 bind -n C-S-Right swap-window -t +1
 bind -n C-S-Up switch-client -p
 bind -n C-S-Down switch-client -n
 
-# split window and fix path for tmux 1.9
-bind \ split-window -h -c "#{pane_current_path}"
-bind - split-window -v -c "#{pane_current_path}"
-
-# Improve copy mode & system clipboard
-# https://robots.thoughtbot.com/tmux-copy-paste-on-os-x-a-better-future
-setw -g mode-keys vi
-
-# http://stackoverflow.com/questions/11404800/fix-vim-tmux-yank-paste-on-unnamed-register
-if-shell "$is_osx" "set -g default-command 'reattach-to-user-namespace -l bash'"
-
-# Setup 'v' to begin selection as in Vim
-bind -t vi-copy v begin-selection
-if-shell "$is_osx" "bind -t vi-copy y copy-pipe 'reattach-to-user-namespace pbcopy'"
-if-shell "$is_linux" "bind -t vi-copy y copy-pipe 'xclip -in -selection clipboard'"
-
-# Update default binding of 'Enter' to also use copy-pipe
-unbind -t vi-copy Enter
-if-shell "$is_osx" "bind -t vi-copy Enter copy-pipe 'reattach-to-user-namespace pbcopy'"
-if-shell "$is_linux" "bind -t vi-copy Enter copy-pipe 'xclip -in -selection clipboard'"
+# split window
+bind "\\" split-window -h -c "#{pane_current_path}"
+bind "|" split-window -fh -c "#{pane_current_path}"
+bind "-" split-window -v -c "#{pane_current_path}"
+bind "_" split-window -fv -c "#{pane_current_path}"
 
 #
 # Theme inspired from https://github.com/nicknisi/dotfiles
@@ -108,3 +87,17 @@ tm_date="#[fg=$tm_color_inactive] %R %d %b"
 
 set -g status-left $tm_session_name' '
 set -g status-right $tm_date
+
+
+#
+# Plugins using tpm
+#
+
+set -g @plugin 'tmux-plugins/tmux-sensible'
+set -g @plugin 'tmux-plugins/tmux-copycat'
+set -g @plugin 'tmux-plugins/tmux-yank'
+set -g @plugin 'tmux-plugins/tmux-open'
+
+if "test ! -d ~/.tmux/plugins/tpm" \
+   "run 'git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm && ~/.tmux/plugins/tpm/bin/install_plugins'"
+run '~/.tmux/plugins/tpm/tpm'
