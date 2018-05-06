@@ -6,6 +6,7 @@
 set -g prefix 'C-Space'
 unbind-key C-b
 bind 'C-Space' send-prefix
+bind C-l send-keys 'C-l'
 
 set -g history-limit 20000
 setw -g mouse on
@@ -21,12 +22,6 @@ bind -n PPage if-shell -F "#{alternate_on}" "send-keys PPage" "copy-mode -e; sen
 
 # Allow C-left and C-right word navigation
 setw -g xterm-keys on
-
-# Easy pane switching
-bind -n M-h select-pane -L
-bind -n M-j select-pane -D
-bind -n M-k select-pane -U
-bind -n M-l select-pane -R
 
 # Easy window switching & swapping
 bind -n M-[ select-window -t :-
@@ -97,6 +92,7 @@ set -g @plugin 'tmux-plugins/tmux-sensible'
 set -g @plugin 'tmux-plugins/tmux-copycat'
 set -g @plugin 'tmux-plugins/tmux-yank'
 set -g @plugin 'tmux-plugins/tmux-open'
+set -g @plugin 'christoomey/vim-tmux-navigator'
 
 if "test ! -d ~/.tmux/plugins/tpm" \
    "run 'git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm && ~/.tmux/plugins/tpm/bin/install_plugins'"
