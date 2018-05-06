@@ -12,24 +12,15 @@ set -g history-limit 20000
 setw -g mouse on
 setw -g mode-keys vi
 
-# Mouse scroll workaround
-bind -n WheelUpPane if-shell -F -t = "#{mouse_any_flag}" "send-keys -M" "if -Ft= '#{pane_in_mode}' 'send-keys -M' 'select-pane -t=; copy-mode -e; send-keys -M'"
-bind -n WheelDownPane select-pane -t= \; send-keys -M
-bind -n C-WheelUpPane select-pane -t= \; copy-mode -e \; send-keys -M
-
 # Start copy mode upon PageUp
 bind -n PPage if-shell -F "#{alternate_on}" "send-keys PPage" "copy-mode -e; send-keys PPage"
 
 # Allow C-left and C-right word navigation
 setw -g xterm-keys on
 
-# Easy window switching & swapping
-bind -n M-[ select-window -t :-
-bind -n M-] select-window -t :+
-bind -n C-S-Left swap-window -t -1
-bind -n C-S-Right swap-window -t +1
-bind -n C-S-Up switch-client -p
-bind -n C-S-Down switch-client -n
+# Easy window handling
+bind -n M-Left swap-window -t -1
+bind -n M-Right swap-window -t +1
 
 # split window
 bind "\\" split-window -h -c "#{pane_current_path}"
