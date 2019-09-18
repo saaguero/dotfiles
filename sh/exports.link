@@ -47,3 +47,6 @@ fi
 export WORKON_HOME=$HOME/virtualenvs
 
 export PATH="$PATH:~/dotfiles/bin"
+
+# REVIEW_BASE is use in git aliases
+export REVIEW_BASE=master
