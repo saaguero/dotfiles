@@ -49,3 +49,6 @@ else
         alias open=gnome-open
     fi
 fi
+
+hash kubectx &>/dev/null && alias kx=kubectx
+hash kubens  &>/dev/null && alias kn=kubens
