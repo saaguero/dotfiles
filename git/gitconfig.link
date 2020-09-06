@@ -4,38 +4,38 @@
 [credential]
 	helper = cache --timeout=31556926
 [alias]
+    # === Cool alias from https://github.com/garybernhardt/dotfiles ===
     st = status -sb
     ci = commit --verbose
     co = checkout
-    di = diff
-    dc = diff --cached
+    cp = cherry-pick
+    di = diff --find-copies-harder
+    dc = diff --find-copies-harder --cached
+    ds = diff --stat=160,120
+    dh = diff HEAD~1
     amend = commit --amend
     aa = add --all
     ff = merge --ff-only
-    pullff = pull -ff-only
-    pu = pull
     noff = merge --no-ff
+    pu = pull
+    pullff = pull --ff-only
     fa = fetch --all
     pom = push origin master
-    b = branch
-    ds = diff --stat=160,120
-    dh1 = diff HEAD~1
+    pf = push --force-with-lease # don't overwrite remote branch if commits were added  by someone else
 
-    # Fancy logging.
-    #   he = head
-    #   r = recent commits, only current branch
-    #   ra = recent commits, all reachable refs
-    #   l = all commits, only current branch
-    #   la = all commits, all reachable refs
     head = !git r -1
-    he = !git head
-    r = !GIT_NO_PAGER=1 git l -30
-    ra = !git r --all
-    l = "!. ~/.githelpers && pretty_git_log"
-    la = !git l --all
-    gl = log --oneline --decorate --graph
+    h = !git head # head
+    hp = "!. ~/.githelpers && show_git_head" # head with patch
+    r = !GIT_NO_PAGER=1 git l -30 # recent commits, only current branch
+    ra = !git r --all # recent commits, all reachable refs
+    l = "!. ~/.githelpers && pretty_git_log" # all commits, only current branch
+    la = !git l --all # all commits, all reachable refs
+    b = "!. ~/.githelpers && pretty_git_branch" # all branches
+    bs = "!. ~/.githelpers && pretty_git_branch_sorted" # all branches, sorted by last commit date
+    g = log --oneline --decorate --graph  # all commits, only current branch (no githelpers dependency)
+    ga = log --oneline --decorate --graph --all # all commits, all reachable refs (no githelpers dependency)
 
-    # easy rebasing (read http://fle.github.io/git-tip-keep-your-branch-clean-with-fixup-and-autosquash.html)
+    # === Easy rebasing from http://fle.github.io/git-tip-keep-your-branch-clean-with-fixup-and-autosquash.html ===
     cif = commit --fixup=HEAD
     squash = rebase -i --autosquash
 
@@ -50,23 +50,26 @@
     # Find commits by commit message
     fm = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short --grep=\"$1\"; }; f"
 
-    # taken from https://blog.jez.io/cli-code-review/
-    # REVIEW_BASE should exist (defaults to 'master' in my bashrc)
 
-    # list files which have changed since REVIEW_BASE 
+    pepe = "!f() { git log --oneline $1...$2; }; f"
+
+
+    # === Easy code review from https://blog.jez.io/cli-code-review ===
+    # WARN: $REVIEW_BASE should exist (defaults to 'master' in my .exports)
+
+    # list files which have changed since $REVIEW_BASE 
     files = !git diff --name-only $(git merge-base HEAD \"$REVIEW_BASE\")
     # Same as above, but with a diff stat instead of just names (better for interactive use)
     stat = !git diff --stat $(git merge-base HEAD \"$REVIEW_BASE\")
     heatmap = !$HOME/dotfiles/bin/git-heatmap
-
-    # Open all files changed since REVIEW_BASE in Vim tabs. Then, run fugitive's :Gdiff in each tab, and finally tell vim-gitgutter to show +/- for changes since REVIEW_BASE
+    # Open all files changed since $REVIEW_BASE in vim tabs and run fugitive's :Gdiff
     review = !vim -p $(git files) +\"tabdo Gdiff $REVIEW_BASE\" +\"let g:gitgutter_diff_base = '$REVIEW_BASE'\"
-    # Same as the above, except specify names of files as arguments, instead of opening all files:  git reviewone foo.js bar.js
+    # Same as the above, except specify names of files as arguments: git reviewone foo.js bar.js
     reviewone = !vim -p +\"tabdo Gdiff $REVIEW_BASE\" +\"let g:gitgutter_diff_base = '$REVIEW_BASE'\"
 
 [core]
 	# Use custom `.gitignore` and `.gitattributes`
-	excludesfile = ~/.gitignore
+	excludesfile = /Users/santiago/.gitignore
 	attributesfile = ~/.gitattributes
 	# [default] trailing-space: looks for spaces at the end of a line
 	# [default] space-before-tab: looks for spaces before tabs at the beginning of a line
