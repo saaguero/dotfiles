@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 PREFERENCE_GENERAL=meld_fun,vim_fun
 PREFERENCE_CONSOLE=vim_fun,diff_fun

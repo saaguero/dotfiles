@@ -35,6 +35,16 @@
     g = log --oneline --decorate --graph  # all commits, only current branch (no githelpers dependency)
     ga = log --oneline --decorate --graph --all # all commits, all reachable refs (no githelpers dependency)
 
+
+    # === More cool alias from https://gist.github.com/robmiller/6018582 ===
+    branch-name = "!git rev-parse --abbrev-ref HEAD"
+    # Push the current branch to the remote "origin", and set it to track the upstream branch
+    publish = "!git push -u origin $(git branch-name)"
+    # Interactively rebase all the commits on the current branch
+    rebase-branch = "!git rebase -i `git merge-base master HEAD`"
+    # Unstage any files that have been added to the staging area
+    unstage = reset HEAD
+
     # === Easy rebasing from http://fle.github.io/git-tip-keep-your-branch-clean-with-fixup-and-autosquash.html ===
     cif = commit --fixup=HEAD
     squash = rebase -i --autosquash
@@ -49,10 +59,6 @@
     fc = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short -S\"$1\"; }; f"
     # Find commits by commit message
     fm = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short --grep=\"$1\"; }; f"
-
-
-    pepe = "!f() { git log --oneline $1...$2; }; f"
-
 
     # === Easy code review from https://blog.jez.io/cli-code-review ===
     # WARN: $REVIEW_BASE should exist (defaults to 'master' in my .exports)
