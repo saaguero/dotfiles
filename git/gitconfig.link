@@ -69,9 +69,9 @@
     stat = !git diff --stat $(git merge-base HEAD \"$REVIEW_BASE\")
     heatmap = !$HOME/dotfiles/bin/git-heatmap
     # Open all files changed since $REVIEW_BASE in vim tabs and run fugitive's :Gdiff
-    review = !vim -p $(git files) +\"tabdo Gdiff $REVIEW_BASE\" +\"let g:gitgutter_diff_base = '$REVIEW_BASE'\"
+    review = !vim -p $(git files) +\"tabdo Gvdiffsplit $REVIEW_BASE\" +\"let g:gitgutter_diff_base = '$REVIEW_BASE'\"
     # Same as the above, except specify names of files as arguments: git reviewone foo.js bar.js
-    reviewone = !vim -p +\"tabdo Gdiff $REVIEW_BASE\" +\"let g:gitgutter_diff_base = '$REVIEW_BASE'\"
+    reviewone = !vim -p +\"tabdo Gvdiffsplit $REVIEW_BASE\" +\"let g:gitgutter_diff_base = '$REVIEW_BASE'\"
 
 [core]
 	# Use custom `.gitignore` and `.gitattributes`
