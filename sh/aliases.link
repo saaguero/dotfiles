@@ -50,5 +50,6 @@ else
     fi
 fi
 
+hash kubectl &>/dev/null && alias k=kubectl && source <(kubectl completion bash) && complete -F __start_kubectl k
 hash kubectx &>/dev/null && alias kx=kubectx
 hash kubens  &>/dev/null && alias kn=kubens
