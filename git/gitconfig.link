@@ -13,6 +13,7 @@
     dc = diff --find-copies-harder --cached
     ds = diff --stat=160,120
     dh = diff HEAD~1
+    dm = "![[ $(git branch --list main) ]] && git diff main || git diff master" # inclusive dm
     amend = commit --amend
     aa = add --all
     ff = merge --ff-only
@@ -20,7 +21,7 @@
     pu = pull
     pullff = pull --ff-only
     fa = fetch --all
-    pom = push origin master
+    pom = "![[ $(git branch --list main) ]] && git push origin main || git push origin master" # inclusive pom
     pf = push --force-with-lease # don't overwrite remote branch if commits were added  by someone else
 
     head = !git r -1
@@ -74,6 +75,8 @@
     reviewone = !vim -p +\"tabdo Gvdiffsplit $REVIEW_BASE\" +\"let g:gitgutter_diff_base = '$REVIEW_BASE'\"
 
 [core]
+    # Use https://github.com/dandavison/delta
+	pager = "delta --theme=TwoDark"
 	# Use custom `.gitignore` and `.gitattributes`
 	excludesfile = /Users/santiago/.gitignore
 	attributesfile = ~/.gitattributes
@@ -103,8 +106,17 @@
 [url "https://github.com/"]
 	insteadOf = git://github.com/
 
+; [merge]
+;     tool = vimdiff
+
 [merge]
-    tool = vimdiff
+    tool = vscode
+[mergetool "vscode"]
+    cmd = code --wait $MERGED
+[diff]
+    tool = vscode
+[difftool "vscode"]
+    cmd = code --wait --diff $LOCAL $REMOTE
 
 [push]
     default = matching
