@@ -8,6 +8,7 @@
     st = status -sb
     ci = commit --verbose
     co = checkout
+    com = "![[ $(git branch --list main) ]] && git checkout main || git checkout master" # inclusive checkout main branch
     cp = cherry-pick
     di = diff --find-copies-harder
     dc = diff --find-copies-harder --cached
