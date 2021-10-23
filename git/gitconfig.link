@@ -1,5 +1,5 @@
 [user]
-	name = Santiago Agüero
+	name = Santi Agüero
 	email = aguerosantiale@gmail.com
 [credential]
 	helper = cache --timeout=31556926
