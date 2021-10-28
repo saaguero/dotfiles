@@ -1,6 +1,6 @@
 #!/bin/bash
-if which brew >/dev/null 2>&1; then
-	. "$(brew --prefix)/etc/bash_completion"
+if [[ -r "/opt/homebrew/etc/profile.d/bash_completion.sh" ]]; then 
+  . "/opt/homebrew/etc/profile.d/bash_completion.sh"
 else
   if [ -f /usr/share/bash-completion/bash_completion ]; then
     . /usr/share/bash-completion/bash_completion
