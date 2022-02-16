@@ -82,6 +82,7 @@ brew "hyperfine"
 brew "ffmpeg"
 brew "grafana/grafana/cortextool"
 brew "gh"
+brew "chipmk/tap/docker-mac-net-connect" # sudo brew services start chipmk/tap/docker-mac-net-connect
 
 cask "docker"
 cask "evernote"
@@ -111,3 +112,9 @@ cask "numi"
 cask "firefox"
 cask "brave-browser"
 cask "teamviewer"
+cask "pgadmin4"
+cask "anydesk"
+cask "authy"
+cask "intellij-idea"
+cask "postman"
+
