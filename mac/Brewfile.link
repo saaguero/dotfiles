@@ -117,4 +117,5 @@ cask "anydesk"
 cask "authy"
 cask "intellij-idea"
 cask "postman"
+cask "loom"
 
