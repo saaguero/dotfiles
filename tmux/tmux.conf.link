@@ -18,9 +18,13 @@ bind -n PPage if-shell -F "#{alternate_on}" "send-keys PPage" "copy-mode -e; sen
 # Allow C-left and C-right word navigation
 setw -g xterm-keys on
 
-# Easy window handling
+# Easy window swapping 
 bind -n M-Left swap-window -t -1
 bind -n M-Right swap-window -t +1
+
+# Shift arrow to switch windows
+bind -n S-Left  previous-window
+bind -n S-Right next-window
 
 # split window
 bind "\\" split-window -h -c "#{pane_current_path}"
