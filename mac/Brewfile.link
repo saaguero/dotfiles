@@ -84,6 +84,15 @@ brew "grafana/grafana/cortextool"
 brew "gh"
 brew "chipmk/tap/docker-mac-net-connect" # sudo brew services start chipmk/tap/docker-mac-net-connect
 brew "mysql"
+brew "minikube"
+brew "k3d"
+brew "linkerd"
+brew "argocd"
+brew "swaks"
+brew "cmatrix"
+brew "ocrmypdf"
+brew "serverless"
+brew "pdfgrep"
 
 cask "docker"
 cask "evernote"
@@ -124,3 +133,7 @@ cask "kindle"
 cask "balance-lock"
 cask "cyberduck"
 cask "mongodb-compass"
+cask "fedora-media-writere
+cask "unetbootin"
+cask "anki"
+
