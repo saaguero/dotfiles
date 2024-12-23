@@ -77,6 +77,8 @@
     # Same as the above, except specify names of files as arguments: git reviewone foo.js bar.js
     reviewone = !vim -p +\"tabdo Gvdiffsplit $REVIEW_BASE\" +\"let g:gitgutter_diff_base = '$REVIEW_BASE'\"
 
+    recommit = !git add -A && git commit --reuse-message=HEAD
+
 [core]
     # Use https://github.com/dandavison/delta
 	; pager = "delta --theme=TwoDark"
