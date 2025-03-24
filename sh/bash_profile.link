@@ -12,6 +12,8 @@
 # PS4='+ $(date "+%s.%N")\011 '
 # exec 3>&2 2>/tmp/bashstart.$$.log
 # set -x
+#
+export BASH_SILENCE_DEPRECATION_WARNING=1
 
 for file in ~/.{path,bash_prompt,exports,aliases,functions,extra,completions}; do
 	[ -r "$file" ] && [ -f "$file" ] && source "$file"
@@ -36,3 +38,5 @@ stty -ixon
 # profiling end
 # set +x
 # exec 2>&3 3>&-
+
+alias assume=". assume"
