@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# Script to install the packages defined in the .Brewfile
+brew bundle install --file $HOME/.Brewfile

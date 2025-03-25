@@ -36,17 +36,20 @@ fi
 # Neovim exports
 if hash nvim &>/dev/null; then
     export NVIM_TUI_ENABLE_CURSOR_SHAPE=1
-    export PYTHONPATH=$PYTHONPATH:~/.virtualenvs/neovim/lib/python2.7/site-packages/
 fi
 
-# FZF export
+# FZF exports
+export FZF_DEFAULT_OPTS='--no-height --no-reverse'
+export FZF_ALT_C_OPTS="--preview 'tree -C {} | head -200'"
+export FZF_CTRL_R_OPTS="--no-sort --exact --preview 'echo {}' --preview-window down:3:hidden:wrap --bind '?:toggle-preview'"
+export FZF_CTRL_T_OPTS="--preview '(highlight -O ansi -l {} 2> /dev/null || cat {} || tree -C {}) 2> /dev/null | head -200'"
 if hash fzf &>/dev/null && hash ag &>/dev/null; then
     export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
 fi
 
+# Other exports
 export WORKON_HOME=$HOME/virtualenvs
-
-export PATH="$PATH:~/dotfiles/bin"
+export PATH=$PATH:$HOME/.local/bin/
 
 # REVIEW_BASE is use in git aliases
 export REVIEW_BASE=master

@@ -27,13 +27,13 @@
 
     head = !git r -1
     h = !git head # head
-    hp = "!. ~/.githelpers && show_git_head" # head with patch
+    hp = "!. githelpers && show_git_head" # head with patch
     r = !GIT_NO_PAGER=1 git l -30 # recent commits, only current branch
     ra = !git r --all # recent commits, all reachable refs
-    l = "!. ~/.githelpers && pretty_git_log" # all commits, only current branch
+    l = "!. githelpers && pretty_git_log" # all commits, only current branch
     la = !git l --all # all commits, all reachable refs
-    b = "!. ~/.githelpers && pretty_git_branch" # all branches
-    bs = "!. ~/.githelpers && pretty_git_branch_sorted" # all branches, sorted by last commit date
+    b = "!. githelpers && pretty_git_branch" # all branches
+    bs = "!. githelpers && pretty_git_branch_sorted" # all branches, sorted by last commit date
     g = log --oneline --decorate --graph  # all commits, only current branch (no githelpers dependency)
     ga = log --oneline --decorate --graph --all # all commits, all reachable refs (no githelpers dependency)
 
@@ -65,7 +65,7 @@
     fm = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short --grep=\"$1\"; }; f"
 
     # === Easy code review from https://blog.jez.io/cli-code-review ===
-    # WARN: $REVIEW_BASE should exist (defaults to 'master' in my .exports)
+    # $REVIEW_BASE should exist (defaults to 'master' in my .exports)
 
     # list files which have changed since $REVIEW_BASE 
     files = !git diff --name-only $(git merge-base HEAD \"$REVIEW_BASE\")
@@ -141,3 +141,7 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+
+# rerere useful for pull --rebase conflicts
+[rerere]
+	enabled = true
