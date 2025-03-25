@@ -49,5 +49,6 @@ tm_session_name="#[default,bg=$base00,fg=$base0E] #S "
 set -g status-left "$tm_session_name"
 
 tm_date="#[default,bg=$base00,fg=$base0C] %R"
-set -g status-right "#(/bin/bash $HOME/.tmux/plugins/kube-tmux/kube.tmux 250 red cyan) |$tm_date"
+# set -g status-right "#(/bin/bash $HOME/.tmux/plugins/kube-tmux/kube.tmux 250 red cyan) |$tm_date"
+set -g status-right "#(/bin/bash $XDG_CONFIG_HOME/tmux/plugins/kube-tmux/kube.tmux 250 red cyan) |$tm_date"
 

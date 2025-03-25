@@ -40,3 +40,7 @@ stty -ixon
 # exec 2>&3 3>&-
 
 alias assume=". assume"
+
+# TODO: Find another place for this, in exports is not working
+# Directly execute the command for history with (CTRL_X CTRL_R)
+bind "$(bind -s | grep '^"\\C-r"' | sed 's/"/"\\C-x/' | sed 's/"$/\\C-m"/')"
