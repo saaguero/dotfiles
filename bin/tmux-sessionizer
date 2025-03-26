@@ -3,7 +3,8 @@
 if [[ $# -eq 1 ]]; then
     selected=$1
 else
-    selected=$(find ~/work ~/personal ~/Dropbox -mindepth 1 -maxdepth 1 -type d | fzf)
+    # ignore hidden files/folders
+    selected=$(find ~ ~/work ~/Dropbox -mindepth 1 -maxdepth 1 -type d -not -path '*/[@.]*' | fzf)
 fi
 
 if [[ -z $selected ]]; then
