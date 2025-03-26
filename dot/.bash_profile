@@ -11,8 +11,12 @@
 # date "+%s.%N"
 # PS4='+ $(date "+%s.%N")\011 '
 # exec 3>&2 2>/tmp/bashstart.$$.log
-# set -x
-#
+
+export DEV_ENV_HOME="$HOME/dotfiles"
+
+[ -z "$XDG_CONFIG_HOME" ] && export XDG_CONFIG_HOME=$HOME/.config
+
+
 export BASH_SILENCE_DEPRECATION_WARNING=1
 
 for file in ~/.{path,bash_prompt,exports,aliases,functions,extra,completions}; do
@@ -41,6 +45,9 @@ stty -ixon
 
 alias assume=". assume"
 
-# TODO: Find another place for this, in exports is not working
+# TODO: Find another place for this, in exports dotfile is not working
 # Directly execute the command for history with (CTRL_X CTRL_R)
 bind "$(bind -s | grep '^"\\C-r"' | sed 's/"/"\\C-x/' | sed 's/"$/\\C-m"/')"
+
+# TODO: Is this a good place to source form?
+[ -f $HOME/.bashrc ] && source $HOME/.bashrc
