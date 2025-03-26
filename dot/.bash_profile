@@ -33,8 +33,8 @@ PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
 # Autocorrect typos in path names when using `cd`
 shopt -s cdspell
 
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
-[ -f ~/dotfiles/bin/z.sh ] && source ~/dotfiles/bin/z.sh
+eval "$(fzf --bash)"
+source ~/.local/bin/z.sh
 
 # disable ctrl-s "freeze" feature
 stty -ixon
