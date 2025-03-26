@@ -3,7 +3,7 @@
 dry_run="0"
 
 if [ -z "$XDG_CONFIG_HOME" ]; then
-    echo "no xdg config hom"
+    echo "no xdg config home"
     echo "using ~/.config" # useful in mac osx
     XDG_CONFIG_HOME=$HOME/.config
 fi
