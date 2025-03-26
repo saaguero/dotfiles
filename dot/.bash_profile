@@ -45,9 +45,10 @@ stty -ixon
 
 alias assume=". assume"
 
-# TODO: Find another place for this, in exports dotfile is not working
 # Directly execute the command for history with (CTRL_X CTRL_R)
 bind "$(bind -s | grep '^"\\C-r"' | sed 's/"/"\\C-x/' | sed 's/"$/\\C-m"/')"
+# bind c-f to open tmux-sessionizer
+bind -x '"\C-f": tmux-sessionizer'
 
 # TODO: Is this a good place to source form?
 [ -f $HOME/.bashrc ] && source $HOME/.bashrc
