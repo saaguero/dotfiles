@@ -8,7 +8,7 @@
                 },
                 "rules": [
                     {
-                        "description": "Disable annoying cmd-m which minimizes windows",
+                        "description": "Disable annoying cmd-m (minimize) and cmd-h (hide)",
                         "manipulators": [
                             {
                                 "from": {
@@ -18,6 +18,19 @@
                                 "to": [
                                     {
                                         "key_code": "m",
+                                        "modifiers": ["left_command", "left_shift", "left_control"]
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "h",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "h",
                                         "modifiers": ["left_command", "left_shift", "left_control"]
                                     }
                                 ],
