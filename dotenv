@@ -94,3 +94,8 @@ update_folders $BASE_PATH/config $XDG_CONFIG_HOME
 
 copy $BASE_PATH/vim/.vimrc $HOME/.vimrc
 copy $BASE_PATH/dotenv $HOME/.local/bin/dotenv
+
+# handle personal (private) repository if available
+if [ -f "$BASE_PATH/personal/.git" ]; then
+    update_files $BASE_PATH/personal/bin $HOME/.local/bin
+fi
