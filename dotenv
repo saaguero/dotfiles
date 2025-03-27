@@ -62,7 +62,7 @@ update_files() {
             file=${2%/}/${c#./}
             log "    removing: rm -f $file"
             if [[ $dry_run == "0" ]]; then
-                rm $file
+                rm -f $file
             fi
 
             log "    copying: cp $c $file"
@@ -95,7 +95,7 @@ update_folders $BASE_PATH/config $XDG_CONFIG_HOME
 copy $BASE_PATH/vim/.vimrc $HOME/.vimrc
 copy $BASE_PATH/dotenv $HOME/.local/bin/dotenv
 
-# handle personal (private) repository if available
+# handle personal repository if available
 if [ -f "$BASE_PATH/personal/.git" ]; then
     update_files $BASE_PATH/personal/bin $HOME/.local/bin
 fi
