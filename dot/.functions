@@ -40,7 +40,7 @@ function ff()
 }
 
 # Function from https://github.com/driv/upto
-function upto() {
+function up() {
 	EXPRESSION="$1"
 	if [ -z "$EXPRESSION" ]; then
 		echo "A folder expression must be provided"
