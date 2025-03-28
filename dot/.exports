@@ -58,3 +58,11 @@ fi
 
 # REVIEW_BASE is use in git aliases
 export REVIEW_BASE=master
+
+if [ -d "$ASDF_DATA_DIR" ] || [ -d "$HOME/.asdf" ]; then
+    export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+fi
+
+if hash virtualenvwrapper.sh &>/dev/null; then
+    source virtualenvwrapper.sh
+fi
