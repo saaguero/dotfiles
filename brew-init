@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+BREW_PREFIX=$(brew --prefix)
+
+# Script to install the packages defined in the .Brewfile
+brew bundle install --file $HOME/.Brewfile
+
+# quick fixes
+ln -s "${BREW_PREFIX}/bin/gsha256sum" "${BREW_PREFIX}/bin/sha256sum"
+
+# Switch to using brew-installed bash as default shell
+if ! fgrep -q "${BREW_PREFIX}/bin/bash" /etc/shells; then
+  echo "${BREW_PREFIX}/bin/bash" | sudo tee -a /etc/shells;
+  chsh -s "${BREW_PREFIX}/bin/bash";
+fi;
+
+# Remove outdated versions from the cellar.
+brew cleanup

@@ -51,5 +51,10 @@ fi
 export WORKON_HOME=$HOME/virtualenvs
 export PATH=$PATH:$HOME/.local/bin/
 
+# use gnu coreutils if available instead of the default macOS
+if hash brew &>/dev/null; then
+    export PATH="$(brew --prefix coreutils)/libexec/gnubin:$PATH"
+fi
+
 # REVIEW_BASE is use in git aliases
 export REVIEW_BASE=master
