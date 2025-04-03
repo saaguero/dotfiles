@@ -38,14 +38,11 @@ if hash nvim &>/dev/null; then
     export NVIM_TUI_ENABLE_CURSOR_SHAPE=1
 fi
 
-# FZF exports
 export FZF_DEFAULT_OPTS='--no-height --no-reverse'
-export FZF_ALT_C_OPTS="--preview 'tree -C {} | head -200'"
 export FZF_CTRL_R_OPTS="--no-sort --exact --preview 'echo {}' --preview-window down:3:hidden:wrap --bind '?:toggle-preview'"
 export FZF_CTRL_T_OPTS="--preview '(highlight -O ansi -l {} 2> /dev/null || cat {} || tree -C {}) 2> /dev/null | head -200'"
-if hash fzf &>/dev/null && hash ag &>/dev/null; then
-    export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
-fi
+# fzf: disable ALT-C (I usually press that by accident)
+export FZF_ALT_C_COMMAND=""
 
 # Other exports
 export WORKON_HOME=$HOME/virtualenvs
