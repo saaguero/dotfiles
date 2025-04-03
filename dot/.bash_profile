@@ -46,7 +46,7 @@ stty -ixon
 
 alias assume=". assume"
 
-# Directly execute the command for history with (CTRL_X CTRL_R)
+# fzf: directly execute the command for history with CTRL_X+CTRL_R
 bind "$(bind -s | grep '^"\\C-r"' | sed 's/"/"\\C-x/' | sed 's/"$/\\C-m"/')"
 # bind c-f to open tmux-sessionizer
 bind -x '"\C-f": tmux-sessionizer'
