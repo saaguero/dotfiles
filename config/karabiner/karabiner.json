@@ -8,7 +8,7 @@
                 },
                 "rules": [
                     {
-                        "description": "Disable annoying cmd-m (minimize), cmd-h (hide), cmd-enter (fulscreen)",
+                        "description": "Disable annoying cmd-m (minimize), cmd-h (hide)",
                         "manipulators": [
                             {
                                 "from": {
@@ -31,19 +31,6 @@
                                 "to": [
                                     {
                                         "key_code": "h",
-                                        "modifiers": ["left_command", "left_shift", "left_control"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "key_code": "return_or_enter",
-                                    "modifiers": { "mandatory": ["command"] }
-                                },
-                                "to": [
-                                    {
-                                        "key_code": "return_or_enter",
                                         "modifiers": ["left_command", "left_shift", "left_control"]
                                     }
                                 ],
