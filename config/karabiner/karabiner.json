@@ -8,7 +8,7 @@
                 },
                 "rules": [
                     {
-                        "description": "Disable annoying cmd-m (minimize) and cmd-h (hide)",
+                        "description": "Disable annoying cmd-m (minimize), cmd-h (hide), cmd-enter (fulscreen)",
                         "manipulators": [
                             {
                                 "from": {
@@ -31,6 +31,19 @@
                                 "to": [
                                     {
                                         "key_code": "h",
+                                        "modifiers": ["left_command", "left_shift", "left_control"]
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "return_or_enter",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "return_or_enter",
                                         "modifiers": ["left_command", "left_shift", "left_control"]
                                     }
                                 ],
@@ -295,6 +308,27 @@
                         "is_pointing_device": true,
                         "product_id": 24926,
                         "vendor_id": 7504
+                    },
+                    "ignore": false
+                },
+                {
+                    "identifiers": {
+                        "is_keyboard": true,
+                        "product_id": 50504,
+                        "vendor_id": 1133
+                    },
+                    "simple_modifications": [
+                        {
+                            "from": { "pointing_button": "button2" },
+                            "to": [{ "key_code": "a" }]
+                        }
+                    ]
+                },
+                {
+                    "identifiers": {
+                        "is_pointing_device": true,
+                        "product_id": 50504,
+                        "vendor_id": 1133
                     },
                     "ignore": false
                 }
