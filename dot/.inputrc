@@ -19,6 +19,12 @@ set convert-meta off
 
 # Use Alt/Meta + Delete to delete the preceding word
 "\e[3;3~": kill-word
+
+# Use Ctrl+backspace to delete preceding word
+"\C-h": backward-kill-word
+"\C-?": backward-kill-word
+
+# Use Ctrl+Left and Ctrl-Right to move the cursor by words
 "\e[1;5D": backward-word
 "\e[1;5C": forward-word
 
