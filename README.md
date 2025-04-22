@@ -4,8 +4,9 @@
 
 - Clone repository to `~/dotfiles`.
 - Run `~/dotfiles/init` to clone the git submodules.
-- If on Mac, use `~/dotfiles/brew-init` to install the packages.
-  - PR welcome for Linux, Windows and others.
+- If you are using Mac:
+  - `~/dotfiles/brew-init` to install the packages.
+  - `~/dotfiles/macos-init` to set up the macOS defaults.
 - Copy the dotfiles and configs with `~/dotfiles/dotenv`.
 
 On any change, you need to re-run `dotenv` to apply the changes.
