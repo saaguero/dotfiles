@@ -8,14 +8,11 @@ if [ -z "$XDG_CONFIG_HOME" ]; then
     XDG_CONFIG_HOME=$HOME/.config
 fi
 
-# grab basepath of this script location
-# BASE_PATH=$(dirname $(realpath $0))
 BASE_PATH=$DOTFILES
 
 if [[ $1 == "--dry" ]]; then
     dry_run="1"
 fi
-
 
 log() {
     if [[ $dry_run == "1" ]]; then
@@ -94,6 +91,8 @@ update_folders $BASE_PATH/config $XDG_CONFIG_HOME
 
 copy $BASE_PATH/vim/.vimrc $HOME/.vimrc
 copy $BASE_PATH/dotenv $HOME/.local/bin/dotenv
+
+copy $BASE_PATH/obsidian/.obsidian.vimrc $OBSIDIAN_VAULT/
 
 # handle personal repository if available
 if [ -f "$BASE_PATH/personal/.git" ]; then

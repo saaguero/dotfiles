@@ -1,5 +1,6 @@
 #!/bin/bash
 export DOTFILES=$HOME/dotfiles
+export OBSIDIAN_VAULT=$HOME/Dropbox/vault
 
 # Make vim the default editor
 if hash vim &>/dev/null; then
