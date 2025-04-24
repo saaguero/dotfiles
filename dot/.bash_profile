@@ -14,7 +14,6 @@
 
 [ -z "$XDG_CONFIG_HOME" ] && export XDG_CONFIG_HOME=$HOME/.config
 
-export DEV_ENV_HOME="$HOME/dotfiles"
 # rg doesn't suport XDG_CONFIG_HOME, but we can point it using its env var
 export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/config"
 
