@@ -2,6 +2,12 @@
 " https://github.com/esm7/obsidian-vimrc-support
 " https://github.com/chrisgrieser/.config/blob/main/obsidian/vimrc/obsidian-vimrc.vim
 
+" free <space> to be used as a <leader>
+unmap <Space>
+
+" remove search highlights
+map <Space><CR> :nohl<cr>
+
 " yank to system clipboard
 set clipboard=unnamed
 
@@ -96,13 +102,18 @@ nnoremap gd :followNextLink<cr>
 nnoremap <C-]> :followNextLink<cr>
 
 " language tool extension mappings
-" TODO: Fix this
-exmap nextsuggestion obcommand obsidian-languagetool-plugin:ltjump-to-next-suggestion
-nnoremap ge :nextSuggestion<cr>
-vnoremap ge :nextSuggestion<cr>
+exmap languagetool_check obcommand languagetool:check
+exmap languagetool_toggle_check obcommand languagetool:toggle-auto-check
+exmap languagetool_clear obcommand languagetool:clear
+exmap languagetool_next obcommand languagetool:next
+exmap languagetool_accept1 obcommand languagetool:accept-1
+exmap languagetool_synonyms obcommand languagetool:synonyms
 
-exmap enableDiagnostics obcommand obsidian-languagetool-plugin:ltcheck-text
-nnoremap <space>od :enableDiagnostics<cr>
-
-exmap disableDiagnostics obcommand obsidian-languagetool-plugin:ltclear
-nnoremap <space>od :disableDiagnostics<cr>
+nnoremap <Space>sc :languagetool_check<cr>
+nnoremap <Space>st :languagetool_toggle_check<cr>
+nnoremap <Space>sd :languagetool_clear<cr>
+nnoremap <Space>sn :languagetool_next<cr>
+vnoremap <Space>sn :languagetool_next<cr>
+nnoremap <Space>sa :languagetool_accept1<cr>
+vnoremap <Space>sa :languagetool_accept1<cr>
+nnoremap <Space>sy :languagetool_synonyms<cr>
