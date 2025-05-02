@@ -109,18 +109,15 @@ exmap languagetool_next obcommand languagetool:next
 exmap languagetool_accept1 obcommand languagetool:accept-1
 exmap languagetool_synonyms obcommand languagetool:synonyms
 
-nnoremap <Space>sc :languagetool_check<cr>
-nnoremap <Space>st :languagetool_toggle_check<cr>
-nnoremap <Space>sd :languagetool_clear<cr>
-nnoremap <Space>sn :languagetool_next<cr>
-vnoremap <Space>sn :languagetool_next<cr>
+" 'g' for 'grammar'
+nnoremap <Space>gc :languagetool_check<cr>
+nnoremap <Space>gt :languagetool_toggle_check<cr>
+nnoremap <Space>gd :languagetool_clear<cr>
+" Keep easy mappings for the frequent actions
 nnoremap <Space>n :languagetool_next<cr>
 vnoremap <Space>n :languagetool_next<cr>
-nnoremap <Space>sa :languagetool_accept1<cr>
-vnoremap <Space>sa :languagetool_accept1<cr>
 nnoremap <Space>a :languagetool_accept1<cr>
 vnoremap <Space>a :languagetool_accept1<cr>
-nnoremap <Space>sy :languagetool_synonyms<cr>
 
 " jump to link (easymotion like), needs obsidian-jump-to-link extension
 exmap jumpToLink obcommand mrj-jump-to-link:activate-jump-to-link
@@ -128,6 +125,6 @@ exmap jumpLightSpeed obcommand mrj-jump-to-link:activate-lightspeed-jump
 exmap jumpToAnywhere obcommand mrj-jump-to-link:activate-jump-to-anywhere
 
 nmap <Space>l :jumpToLink<cr>
-nmap <Space>s :jumpLightSpeed<cr>
+nmap s :jumpLightSpeed<cr>
 nmap <Space>j :jumpToAnywhere<cr>
 nmap <Space>k :jumpToAnywhere<cr>
