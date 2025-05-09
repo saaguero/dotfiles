@@ -1,5 +1,10 @@
 macos-titlebar-style = hidden
 
+maximize = true
+window-padding-balance = true
+window-padding-x = 0
+window-padding-y = 0
+
 shell-integration-features = no-cursor,no-sudo,no-title
 font-size = 18
 
