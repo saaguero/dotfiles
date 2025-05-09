@@ -125,6 +125,6 @@ exmap jumpLightSpeed obcommand mrj-jump-to-link:activate-lightspeed-jump
 exmap jumpToAnywhere obcommand mrj-jump-to-link:activate-jump-to-anywhere
 
 nmap <Space>l :jumpToLink<cr>
-nmap s :jumpLightSpeed<cr>
+nmap <Space>s :jumpLightSpeed<cr>
 nmap <Space>j :jumpToAnywhere<cr>
 nmap <Space>k :jumpToAnywhere<cr>
