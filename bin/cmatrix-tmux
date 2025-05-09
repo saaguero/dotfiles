@@ -12,8 +12,9 @@ cmatrix
 tmux set-option -g status
 
 # position window to the left (using my hotkey)
-osascript -e '
-tell application "System Events"
-    key code 124 using {control down, option down}
-end tell
-'
+# Disabling it as it will better to restore instead of positioning to a specific position
+# osascript -e '
+# tell application "System Events"
+#     key code 124 using {control down, option down}
+# end tell
+# '
