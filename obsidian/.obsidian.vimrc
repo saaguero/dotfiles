@@ -8,9 +8,6 @@ unmap <Space>
 " remove search highlights
 map <Space><CR> :nohl<cr>
 
-" yank to system clipboard
-set clipboard=unnamed
-
 " navigate visual lines rather than logical ones
 nnoremap j gj
 nnoremap k gk
