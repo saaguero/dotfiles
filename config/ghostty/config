@@ -6,9 +6,10 @@ window-padding-x = 0
 window-padding-y = 0
 
 shell-integration-features = no-cursor,no-sudo,no-title
-font-size = 18
+font-size = 16
 
 keybind = super+enter=ignore
+keybind = super+n=ignore
 
 cursor-style = block
 cursor-style-blink = false
