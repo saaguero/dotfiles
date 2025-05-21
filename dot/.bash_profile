@@ -19,10 +19,14 @@ export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/config"
 
 export BASH_SILENCE_DEPRECATION_WARNING=1
 
-for file in ~/.{path,bash_prompt,exports,aliases,functions,extra,completions}; do
+for file in ~/.{path,bash_prompt,exports,aliases,functions,extra,completions,complete_alias}; do
 	[ -r "$file" ] && [ -f "$file" ] && source "$file"
 done
 unset file
+
+# Add autocompletion of all defined alias so far
+# https://github.com/cykerway/complete-alias
+complete -F _complete_alias "${!BASH_ALIASES[@]}"
 
 # Case-insensitive globbing (used in pathname expansion)
 shopt -s nocaseglob
@@ -42,8 +46,6 @@ stty -ixon
 # profiling end
 # set +x
 # exec 2>&3 3>&-
-
-alias assume=". assume"
 
 # fzf: directly execute the command for history with CTRL_X+CTRL_R
 bind "$(bind -s | grep '^"\\C-r"' | sed 's/"/"\\C-x/' | sed 's/"$/\\C-m"/')"
