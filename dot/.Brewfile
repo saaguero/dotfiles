@@ -94,9 +94,10 @@ brew "coreutils"
 brew "mongodb-database-tools"
 brew "parallel"
 brew "jesseduffield/lazygit/lazygit"
-brew "slides"                                                                                                                              │
-brew "noahgorstein/tap/jqp"                                                                                                                │
+brew "slides"
+brew "noahgorstein/tap/jqp"
 brew "colima"
+brew "lnav"
 
 cask "docker"
 cask "google-cloud-sdk"
