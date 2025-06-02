@@ -54,3 +54,6 @@ hash kubens  &>/dev/null && alias kn=kubens
 
 # https://granted.dev
 alias assume=". assume"
+
+# trying out new aliases
+alias ..="cd .."
