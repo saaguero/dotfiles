@@ -8,9 +8,7 @@ alias less="TERM=xterm less -r"
 # force TERM for man as otherwise it doesn't highlight propertly in tmux
 alias man="TERM=xterm man"
 
-# Enable aliases to be sudo’ed
-alias sudo='sudo '
-
+# Enable aliases to be sudo’ed alias sudo='sudo '
 alias myip="dig +short myip.opendns.com @resolver1.opendns.com"
 alias myips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
 
@@ -55,5 +53,26 @@ hash kubens  &>/dev/null && alias kn=kubens
 # https://granted.dev
 alias assume=". assume"
 
+# Add autocompletion of all defined alias so far
+# https://github.com/cykerway/complete-alias
+complete -F _complete_alias "${!BASH_ALIASES[@]}"
+
+# 
+# Aliases from here won't be autocompleted, useful if you are having issues with complete_alias
+#
+
+if [ "$(uname)" == "Darwin" ]; then
+    alias vim="mvim -v"
+    alias vi="mvim -v"
+else
+    if hash vim &>/dev/null; then
+        alias vi="vim"
+    elif hash gvim &>/dev/null; then
+        alias vim="gvim -v"
+        alias vi="gvim -v"
+    fi
+fi
+
 # trying out new aliases
 alias ..="cd .."
+

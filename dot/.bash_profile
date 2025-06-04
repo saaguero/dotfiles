@@ -19,14 +19,11 @@ export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/config"
 
 export BASH_SILENCE_DEPRECATION_WARNING=1
 
-for file in ~/.{path,bash_prompt,exports,aliases,functions,extra,completions,complete_alias}; do
+# Use ~/.extra for things you don't want to commit
+for file in ~/.{bash_prompt,exports,functions,extra,completions,complete_alias,aliases}; do
 	[ -r "$file" ] && [ -f "$file" ] && source "$file"
 done
 unset file
-
-# Add autocompletion of all defined alias so far
-# https://github.com/cykerway/complete-alias
-complete -F _complete_alias "${!BASH_ALIASES[@]}"
 
 # Case-insensitive globbing (used in pathname expansion)
 shopt -s nocaseglob
