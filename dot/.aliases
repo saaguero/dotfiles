@@ -2,6 +2,21 @@
 # Allow alias expansion in non-interactive shells
 shopt -s expand_aliases
 
+hash kubectl &>/dev/null && [ -f ~/.kubectl_aliases ] && source ~/.kubectl_aliases
+hash kubectx &>/dev/null && alias kx=kubectx
+hash kubens  &>/dev/null && alias kn=kubens
+
+# https://granted.dev
+alias assume=". assume"
+
+# Add autocompletion of all defined alias so far
+# https://github.com/cykerway/complete-alias
+complete -F _complete_alias "${!BASH_ALIASES[@]}"
+
+# 
+# Aliases from here won't be autocompleted, useful if you are having issues with complete_alias
+#
+
 # make less to handle ansi codes correctly
 alias less="TERM=xterm less -r"
 
@@ -43,33 +58,6 @@ else
 
     if hash gnome-open &>/dev/null; then
         alias open=gnome-open
-    fi
-fi
-
-hash kubectl &>/dev/null && [ -f ~/.kubectl_aliases ] && source ~/.kubectl_aliases
-hash kubectx &>/dev/null && alias kx=kubectx
-hash kubens  &>/dev/null && alias kn=kubens
-
-# https://granted.dev
-alias assume=". assume"
-
-# Add autocompletion of all defined alias so far
-# https://github.com/cykerway/complete-alias
-complete -F _complete_alias "${!BASH_ALIASES[@]}"
-
-# 
-# Aliases from here won't be autocompleted, useful if you are having issues with complete_alias
-#
-
-if [ "$(uname)" == "Darwin" ]; then
-    alias vim="mvim -v"
-    alias vi="mvim -v"
-else
-    if hash vim &>/dev/null; then
-        alias vi="vim"
-    elif hash gvim &>/dev/null; then
-        alias vim="gvim -v"
-        alias vi="gvim -v"
     fi
 fi
 
