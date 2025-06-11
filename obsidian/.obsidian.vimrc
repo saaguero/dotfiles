@@ -68,6 +68,7 @@ exmap surround_link surround [[ ]]
 exmap surround_higlight surround == ==
 exmap surround_italics surround * *
 exmap surround_bold surround ** **
+exmap surround_strikethrough surround ~~ ~~
 exmap surround_double_quotes surround " "
 exmap surround_single_quotes surround ' '
 exmap surround_backticks surround ` `
@@ -81,6 +82,7 @@ map sl :surround_link<CR>
 map sh :surround_higlight<CR>
 map si :surround_italics<CR>
 map sb :surround_bold<CR>
+map st :surround_strikethrough<CR>
 map s" :surround_double_quotes<CR>
 map s' :surround_single_quotes<CR>
 map s` :surround_backticks<CR>
