@@ -49,13 +49,13 @@ exmap q obcommand workspace:close
 
 " easy pane navigation
 exmap focusRight obcommand editor:focus-right
-nmap <C-w>l :focusRight<cr>
+nmap <C-l> :focusRight<cr>
 exmap focusLeft obcommand editor:focus-left
-nmap <C-w>h :focusLeft<cr>
+nmap <C-h> :focusLeft<cr>
 exmap focusTop obcommand editor:focus-top
-nmap <C-w>k :focusTop<cr>
+nmap <C-k> :focusTop<cr>
 exmap focusBottom obcommand editor:focus-bottom
-nmap <C-w>j :focusBottom<cr>
+nmap <C-j> :focusBottom<cr>
 
 " easy pane split
 exmap vsplit obcommand workspace:split-vertical
