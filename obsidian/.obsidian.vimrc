@@ -49,13 +49,19 @@ exmap q obcommand workspace:close
 
 " easy pane navigation
 exmap focusRight obcommand editor:focus-right
-nmap <C-l> :focusRight<cr>
 exmap focusLeft obcommand editor:focus-left
-nmap <C-h> :focusLeft<cr>
 exmap focusTop obcommand editor:focus-top
-nmap <C-k> :focusTop<cr>
 exmap focusBottom obcommand editor:focus-bottom
+nmap <C-l> :focusRight<cr>
+nmap <C-h> :focusLeft<cr>
+nmap <C-k> :focusTop<cr>
 nmap <C-j> :focusBottom<cr>
+
+" classic mappings
+nmap <C-w>l :focusRight<cr>
+nmap <C-w>h :focusLeft<cr>
+nmap <C-w>k :focusTop<cr>
+nmap <C-w>j :focusBottom<cr>
 
 " easy pane split
 exmap vsplit obcommand workspace:split-vertical
