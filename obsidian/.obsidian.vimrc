@@ -11,6 +11,8 @@ map <Space><CR> :nohl<cr>
 " navigate visual lines rather than logical ones
 nnoremap j gj
 nnoremap k gk
+vnoremap j gj
+vnoremap k gk
 nnoremap <Down> gj
 nnoremap <Up> gk
 nnoremap I g0i
@@ -133,3 +135,9 @@ nmap <Space>l :jumpToLink<cr>
 nmap <Space>s :jumpLightSpeed<cr>
 nmap <Space>j :jumpToAnywhere<cr>
 nmap <Space>k :jumpToAnywhere<cr>
+
+" better cursor history navigation, needs obsidian-heycalmdown extension
+exmap cursorBackward obcommand heycalmdown-navigate-cursor-history:cursor-position-backward
+exmap cursorForward obcommand heycalmdown-navigate-cursor-history:cursor-position-forward
+nmap <C-o> :cursorBackward<cr>
+nmap <C-i> :cursorForward<cr>
