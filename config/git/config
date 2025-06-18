@@ -37,6 +37,12 @@
     g = log --oneline --decorate --graph  # all commits, only current branch (no githelpers dependency)
     ga = log --oneline --decorate --graph --all # all commits, all reachable refs (no githelpers dependency)
 
+    # easy commit adding current branch name to commit message
+    cim = "!f() { \
+        branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || { echo 'not a git repo'; exit 1; }; \
+        git commit -am \"$branch: $*\"; \
+    }; f"
+
     # show parent of the branch, https://stackoverflow.com/a/52025740
     parent = "!git show-branch | grep '*' | grep -v \"$(git rev-parse --abbrev-ref HEAD)\" | head -n1 | sed 's/.*\\[\\(.*\\)\\].*/\\1/' | sed 's/[\\^~].*//' #"
 
