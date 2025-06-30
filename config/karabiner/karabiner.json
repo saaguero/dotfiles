@@ -472,15 +472,6 @@
                                 "type": "basic"
                             },
                             {
-                                "conditions": [
-                                    {
-                                        "bundle_identifiers": [
-                                            "com.mitchellh.ghostty",
-                                            "com.apple.Terminal"
-                                        ],
-                                        "type": "frontmost_application_unless"
-                                    }
-                                ],
                                 "description": "Document beginning (ctrl+up)",
                                 "from": {
                                     "key_code": "up_arrow",
@@ -498,15 +489,6 @@
                                 "type": "basic"
                             },
                             {
-                                "conditions": [
-                                    {
-                                        "bundle_identifiers": [
-                                            "com.mitchellh.ghostty",
-                                            "com.apple.Terminal"
-                                        ],
-                                        "type": "frontmost_application_unless"
-                                    }
-                                ],
                                 "description": "Document end (ctrl+down)",
                                 "from": {
                                     "key_code": "down_arrow",
