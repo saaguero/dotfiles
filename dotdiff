@@ -1,0 +1,184 @@
+#!/usr/bin/env bash
+# Script to check differences between dotfiles repo and actual files on machine
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Set XDG_CONFIG_HOME if not set
+if [ -z "$XDG_CONFIG_HOME" ]; then
+    XDG_CONFIG_HOME=$HOME/.config
+fi
+
+BASE_PATH=$DOTFILES
+
+if [ -z "$BASE_PATH" ]; then
+    BASE_PATH=$(dirname "$0")
+fi
+
+echo -e "${BLUE}Checking differences between dotfiles repo and system files...${NC}"
+echo -e "${BLUE}Base path: $BASE_PATH${NC}"
+echo
+
+# Global variable to track differences
+GLOBAL_HAS_DIFFERENCES=0
+
+# Function to compare files and show diff
+compare_file() {
+    local repo_file="$1"
+    local system_file="$2"
+    local description="$3"
+    
+    if [ ! -f "$system_file" ]; then
+        echo -e "${RED}MISSING:${NC} $description"
+        echo -e "  System file does not exist: $system_file"
+        echo
+        GLOBAL_HAS_DIFFERENCES=1
+        return
+    fi
+    
+    if ! diff -q "$repo_file" "$system_file" > /dev/null 2>&1; then
+        echo -e "${YELLOW}DIFFERENT:${NC} $description"
+        echo -e "  Repo:   $repo_file"
+        echo -e "  System: $system_file"
+        echo -e "${BLUE}Diff:${NC}"
+        
+        # Try to use delta, bat, or colordiff for prettier output, fallback to diff
+        if command -v delta >/dev/null 2>&1; then
+            diff -u "$repo_file" "$system_file" | delta --no-gitconfig --line-numbers --side-by-side 2>/dev/null || diff -u "$repo_file" "$system_file" | head -20
+        elif command -v bat >/dev/null 2>&1; then
+            diff -u "$repo_file" "$system_file" | bat --language diff --style=grid --color=always 2>/dev/null || diff -u "$repo_file" "$system_file" | head -20
+        elif command -v colordiff >/dev/null 2>&1; then
+            colordiff -u "$repo_file" "$system_file" | head -20
+        else
+            # Manual colorization of diff output
+            diff -u "$repo_file" "$system_file" | head -20 | while IFS= read -r line; do
+                if [[ $line =~ ^--- ]]; then
+                    echo -e "${RED}$line${NC}"
+                elif [[ $line =~ ^\+\+\+ ]]; then
+                    echo -e "${GREEN}$line${NC}"
+                elif [[ $line =~ ^@@ ]]; then
+                    echo -e "${BLUE}$line${NC}"
+                elif [[ $line =~ ^- ]]; then
+                    echo -e "${RED}$line${NC}"
+                elif [[ $line =~ ^\+ ]]; then
+                    echo -e "${GREEN}$line${NC}"
+                else
+                    echo "$line"
+                fi
+            done
+        fi
+        echo
+        GLOBAL_HAS_DIFFERENCES=1
+    else
+        echo -e "${GREEN}SYNCED:${NC} $description"
+    fi
+}
+
+# Function to compare directories
+compare_directory() {
+    local repo_dir="$1"
+    local system_dir="$2"
+    local description="$3"
+    
+    echo -e "${BLUE}Checking directory: $description${NC}"
+    
+    if [ ! -d "$repo_dir" ]; then
+        echo -e "${RED}ERROR:${NC} Repo directory does not exist: $repo_dir"
+        echo
+        return
+    fi
+    
+    if [ ! -d "$system_dir" ]; then
+        echo -e "${RED}MISSING:${NC} System directory does not exist: $system_dir"
+        echo
+        GLOBAL_HAS_DIFFERENCES=1
+        return
+    fi
+    
+    # Find all files in repo directory and compare (exclude .git directories, tmux/plugins, and karabiner/automatic_backups)
+    find "$repo_dir" -type f -not -path "*/.git/*" -not -path "*/tmux/plugins/*" -not -path "*/karabiner/automatic_backups/*" | while read -r repo_file; do
+        relative_path="${repo_file#$repo_dir/}"
+        system_file="$system_dir/$relative_path"
+        compare_file "$repo_file" "$system_file" "$relative_path"
+    done
+    
+    # Check for files in system that don't exist in repo (exclude .git directories, tmux/plugins, and karabiner/automatic_backups)
+    find "$system_dir" -type f -not -path "*/.git/*" -not -path "*/tmux/plugins/*" -not -path "*/karabiner/automatic_backups/*" | while read -r system_file; do
+        relative_path="${system_file#$system_dir/}"
+        repo_file="$repo_dir/$relative_path"
+        if [ ! -f "$repo_file" ]; then
+            echo -e "${YELLOW}EXTRA:${NC} File exists in system but not in repo: $relative_path"
+            echo -e "  System: $system_file"
+            echo
+            GLOBAL_HAS_DIFFERENCES=1
+        fi
+    done
+}
+
+echo -e "${BLUE}=== Checking dot files (home directory) ===${NC}"
+if [ -d "$BASE_PATH/dot" ]; then
+    find "$BASE_PATH/dot" -type f | while read -r repo_file; do
+        filename=$(basename "$repo_file")
+        system_file="$HOME/$filename"
+        compare_file "$repo_file" "$system_file" "Home file: $filename"
+    done
+else
+    echo -e "${RED}ERROR:${NC} dot directory not found: $BASE_PATH/dot"
+fi
+
+echo
+echo -e "${BLUE}=== Checking config files (.config directory) ===${NC}"
+if [ -d "$BASE_PATH/config" ]; then
+    find "$BASE_PATH/config" -mindepth 1 -maxdepth 1 -type d | while read -r config_dir; do
+        config_name=$(basename "$config_dir")
+        system_config_dir="$XDG_CONFIG_HOME/$config_name"
+        compare_directory "$config_dir" "$system_config_dir" "Config: $config_name"
+    done
+else
+    echo -e "${RED}ERROR:${NC} config directory not found: $BASE_PATH/config"
+fi
+
+echo
+echo -e "${BLUE}=== Checking vim configuration ===${NC}"
+if [ -f "$BASE_PATH/vim/.vimrc" ]; then
+    compare_file "$BASE_PATH/vim/.vimrc" "$HOME/.vimrc" "Vim configuration"
+else
+    echo -e "${RED}ERROR:${NC} vim/.vimrc not found in repo"
+fi
+
+echo
+echo -e "${BLUE}=== Checking obsidian configuration ===${NC}"
+if [ -f "$BASE_PATH/obsidian/.obsidian.vimrc" ] && [ -n "$OBSIDIAN_VAULT" ]; then
+    compare_file "$BASE_PATH/obsidian/.obsidian.vimrc" "$OBSIDIAN_VAULT/.obsidian.vimrc" "Obsidian vim configuration"
+elif [ -f "$BASE_PATH/obsidian/.obsidian.vimrc" ]; then
+    echo -e "${YELLOW}WARNING:${NC} OBSIDIAN_VAULT environment variable not set, skipping obsidian check"
+fi
+
+echo
+echo -e "${BLUE}=== Checking personal files ===${NC}"
+if [ -d "$BASE_PATH/personal" ] && [ -f "$BASE_PATH/personal/.git" ]; then
+    if [ -d "$BASE_PATH/personal/bin" ]; then
+        find "$BASE_PATH/personal/bin" -type f | while read -r repo_file; do
+            filename=$(basename "$repo_file")
+            system_file="$HOME/.local/bin/$filename"
+            compare_file "$repo_file" "$system_file" "Personal bin: $filename"
+        done
+    fi
+else
+    echo "Personal repository not available or not initialized"
+fi
+
+echo
+if [ $GLOBAL_HAS_DIFFERENCES -eq 0 ]; then
+    echo -e "${GREEN}✓ All dotfiles are in sync!${NC}"
+else
+    echo -e "${YELLOW}⚠ Differences found between repo and system files${NC}"
+    echo -e "${BLUE}To sync your changes back to the repo, you can:${NC}"
+    echo "  1. Copy changed files from system back to repo"
+    echo "  2. Review and commit the changes"
+    echo "  3. Run dotenv to reinstall if needed"
+fi
