@@ -24,6 +24,9 @@ set convert-meta off
 "\C-h": backward-kill-word
 "\C-?": backward-kill-word
 
+# Use Opt+k as an alternative to Ctrl+k (in use by the vim-tmux-navigator plugin)
+"\ek": kill-line
+
 # Use Ctrl+Left and Ctrl-Right to move the cursor by words
 "\e[1;5D": backward-word
 "\e[1;5C": forward-word
