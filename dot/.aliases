@@ -2,6 +2,7 @@
 # Allow alias expansion in non-interactive shells
 shopt -s expand_aliases
 
+hash kubectl &>/dev/null && alias k=kubectl
 hash kubectx &>/dev/null && alias kx=kubectx
 hash kubens  &>/dev/null && alias kn=kubens
 
