@@ -133,3 +133,30 @@ cp-progress() {
 kubectl-all() {
     kubectl api-resources --verbs=list -o name | xargs -n 1 kubectl get --show-kind --ignore-not-found
 }
+
+# Cool AI integrations with raycast
+# https://wengerk.medium.com/how-i-use-ai-raycast-ollama-and-git-to-help-me-write-better-commit-pull-request-messages-fa692d41d8ba
+aimsg() {
+    # Copy the staged diff to clipboard for AI analysis
+    git --no-pager diff --cached | pbcopy
+
+    # Get the current branch name
+    branch=$(git symbolic-ref --short HEAD)
+
+    # Open Raycast AI command with branch context
+    open -g "raycast://ai-commands/commit-message?arguments={\"branch\":\"$branch\"}"
+}
+
+aipr() {
+    if git show-ref --verify --quiet refs/heads/main; then
+        base_branch="main"
+    else
+        base_branch="master"
+    fi
+
+    # Get the diff between current branch and main/dev
+    diff=$(git log --oneline $base_branch.."$(git symbolic-ref --short HEAD)")
+
+    # Launch Raycast AI command with diff data
+    open -g "raycast://ai-commands/pr-description?arguments={\"diff\":\"$diff\"}"
+}
