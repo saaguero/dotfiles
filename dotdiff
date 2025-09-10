@@ -100,14 +100,14 @@ compare_directory() {
     fi
     
     # Find all files in repo directory and compare (exclude .git directories, tmux/plugins, and karabiner/automatic_backups)
-    find "$repo_dir" -type f -not -path "*/.git/*" -not -path "*/tmux/plugins/*" -not -path "*/karabiner/automatic_backups/*" | while read -r repo_file; do
+    while IFS= read -r repo_file; do
         relative_path="${repo_file#$repo_dir/}"
         system_file="$system_dir/$relative_path"
         compare_file "$repo_file" "$system_file" "$relative_path"
-    done
+    done < <(find "$repo_dir" -type f -not -path "*/.git/*" -not -path "*/tmux/plugins/*" -not -path "*/karabiner/automatic_backups/*")
     
     # Check for files in system that don't exist in repo (exclude .git directories, tmux/plugins, and karabiner/automatic_backups)
-    find "$system_dir" -type f -not -path "*/.git/*" -not -path "*/tmux/plugins/*" -not -path "*/karabiner/automatic_backups/*" | while read -r system_file; do
+    while IFS= read -r system_file; do
         relative_path="${system_file#$system_dir/}"
         repo_file="$repo_dir/$relative_path"
         if [ ! -f "$repo_file" ]; then
@@ -116,16 +116,16 @@ compare_directory() {
             echo
             GLOBAL_HAS_DIFFERENCES=1
         fi
-    done
+    done < <(find "$system_dir" -type f -not -path "*/.git/*" -not -path "*/tmux/plugins/*" -not -path "*/karabiner/automatic_backups/*")
 }
 
 echo -e "${BLUE}=== Checking dot files (home directory) ===${NC}"
 if [ -d "$BASE_PATH/dot" ]; then
-    find "$BASE_PATH/dot" -type f | while read -r repo_file; do
+    while IFS= read -r repo_file; do
         filename=$(basename "$repo_file")
         system_file="$HOME/$filename"
         compare_file "$repo_file" "$system_file" "Home file: $filename"
-    done
+    done < <(find "$BASE_PATH/dot" -type f)
 else
     echo -e "${RED}ERROR:${NC} dot directory not found: $BASE_PATH/dot"
 fi
@@ -133,11 +133,11 @@ fi
 echo
 echo -e "${BLUE}=== Checking config files (.config directory) ===${NC}"
 if [ -d "$BASE_PATH/config" ]; then
-    find "$BASE_PATH/config" -mindepth 1 -maxdepth 1 -type d | while read -r config_dir; do
+    while IFS= read -r config_dir; do
         config_name=$(basename "$config_dir")
         system_config_dir="$XDG_CONFIG_HOME/$config_name"
         compare_directory "$config_dir" "$system_config_dir" "Config: $config_name"
-    done
+    done < <(find "$BASE_PATH/config" -mindepth 1 -maxdepth 1 -type d)
 else
     echo -e "${RED}ERROR:${NC} config directory not found: $BASE_PATH/config"
 fi
@@ -162,17 +162,18 @@ echo
 echo -e "${BLUE}=== Checking personal files ===${NC}"
 if [ -d "$BASE_PATH/personal" ] && [ -f "$BASE_PATH/personal/.git" ]; then
     if [ -d "$BASE_PATH/personal/bin" ]; then
-        find "$BASE_PATH/personal/bin" -type f | while read -r repo_file; do
+        while IFS= read -r repo_file; do
             filename=$(basename "$repo_file")
             system_file="$HOME/.local/bin/$filename"
             compare_file "$repo_file" "$system_file" "Personal bin: $filename"
-        done
+        done < <(find "$BASE_PATH/personal/bin" -type f)
     fi
 else
     echo "Personal repository not available or not initialized"
 fi
 
 echo
+
 if [ $GLOBAL_HAS_DIFFERENCES -eq 0 ]; then
     echo -e "${GREEN}✓ All dotfiles are in sync!${NC}"
 else
