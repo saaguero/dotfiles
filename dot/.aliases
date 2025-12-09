@@ -63,4 +63,5 @@ fi
 
 # trying out new aliases
 alias ..="cd .."
+alias cl="clear"
 
