@@ -1,6 +1,7 @@
 [user]
 	name = Santi Agüero
 	email = aguerosantiale@gmail.com
+	signingkey = /Users/santiagoaguero/.ssh/id_ed25519.pub
 [credential]
 	helper = cache --timeout=31556926
 [alias]
@@ -142,6 +143,7 @@
 	trustExitCode = true
 [commit]
 	template = /Users/santi/.stCommitMsg
+	gpgsign = true
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
@@ -151,3 +153,5 @@
 # rerere useful for pull --rebase conflicts
 [rerere]
 	enabled = true
+[gpg]
+	format = ssh
