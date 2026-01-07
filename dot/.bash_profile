@@ -27,10 +27,12 @@ unset file
 
 # Case-insensitive globbing (used in pathname expansion)
 shopt -s nocaseglob
-# Append to the Bash history file, rather than overwriting it
+# Append to the bash history file, rather than overwriting it
 shopt -s histappend
-# Append to history immediately
-PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
+# Handle multi-line commands correctly in bash history
+shopt -s lithist
+# Append to history immediately and update existing history on other terminal sessions
+PROMPT_COMMAND="history -a; history -n; $PROMPT_COMMAND"
 # Autocorrect typos in path names when using `cd`
 shopt -s cdspell
 

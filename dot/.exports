@@ -11,8 +11,8 @@ elif hash mvim &>/dev/null; then
     export EDITOR='mvim -v'
 fi
 
-# Larger bash history (allow 32³ entries; default is 500)
-export HISTSIZE=32768
+# Unlimited bash history
+export HISTSIZE=-1
 export HISTFILESIZE=$HISTSIZE
 export HISTCONTROL=ignoredups
 
