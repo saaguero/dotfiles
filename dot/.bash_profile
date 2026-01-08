@@ -31,8 +31,8 @@ shopt -s nocaseglob
 shopt -s histappend
 # Handle multi-line commands correctly in bash history
 shopt -s lithist
-# Append to history immediately and update existing history on other terminal sessions
-PROMPT_COMMAND="history -a; history -n; $PROMPT_COMMAND"
+# Append to history immediately
+PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
 # Autocorrect typos in path names when using `cd`
 shopt -s cdspell
 
