@@ -12,9 +12,13 @@ elif hash mvim &>/dev/null; then
 fi
 
 # Unlimited bash history
-export HISTSIZE=-1
+export HISTFILE="$HOME/.bash_history"
+export HISTSIZE=100000000
 export HISTFILESIZE=$HISTSIZE
 export HISTCONTROL=ignoredups
+
+# theoretically prevents macOS from managing your bash history sessions
+export SHELL_SESSION_HISTORY=0
 
 # Ctrl+D must be pressed twice to exit bash
 export IGNOREEOF=1
