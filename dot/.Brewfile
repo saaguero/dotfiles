@@ -119,6 +119,7 @@ brew "yq"
 
 cask "1password"
 cask "anki"
+cask "antigravity"
 cask "anydesk"
 cask "balance-lock"
 cask "bruno"
