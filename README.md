@@ -11,7 +11,14 @@
 
 On any change, you need to re-run `dotenv` to apply the changes.
 
+## LanguageTool
+
+To set up a local LanguageTool instance with Spanish n-grams (requires Docker):
+
+- Run `~/dotfiles/languagetool-init`.
+
 ## Credits
-- [Mathias Bynens](https://github.com/mathiasbynens/dotfiles/) 
+
+- [Mathias Bynens](https://github.com/mathiasbynens/dotfiles/)
 - [Nick Nisi](https://github.com/nicknisi/dotfiles)
 - [ThePrimeagen](https://github.com/ThePrimeagen/dev)
