@@ -1,3 +1,5 @@
 .DS_Store
 .poplar.txt
 .extra
+*.zip
+config/languagetool/ngrams

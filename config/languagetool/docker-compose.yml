@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  languagetool:
+    image: erikvl87/languagetool
+    container_name: languagetool
+    restart: unless-stopped
+    ports:
+      - "8010:8010"
+    environment:
+      - JAVA_MX=512m # M1 Pro handles this easily; increase to 1g if heavy usage
+    volumes:
+      # Optional: Persistence for n-grams (huge download, improves accuracy)
+      - ./ngrams:/ngrams

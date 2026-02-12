@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -e
+
+# Resolve the directory of the script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LT_CONFIG_DIR="$SCRIPT_DIR/config/languagetool"
+
+if [ ! -d "$LT_CONFIG_DIR" ]; then
+    echo "Error: LanguageTool config directory not found at $LT_CONFIG_DIR"
+    exit 1
+fi
+
+cd "$LT_CONFIG_DIR"
+
+echo "Setting up LanguageTool in $LT_CONFIG_DIR..."
+
+# 1. Download n-grams
+echo "Running n-gram download script..."
+if [ -f "./download_ngrams.sh" ]; then
+    chmod +x ./download_ngrams.sh
+    ./download_ngrams.sh
+else
+    echo "Error: download_ngrams.sh not found!"
+    exit 1
+fi
+
+# 2. Start Docker Compose
+echo "Starting LanguageTool container..."
+if command -v docker-compose &> /dev/null; then
+    docker-compose up -d
+elif docker compose version &> /dev/null; then
+    docker compose up -d
+else
+    echo "Error: Neither 'docker-compose' nor 'docker compose' found."
+    exit 1
+fi
+
+echo "LanguageTool is up and running!"
+echo "Service is available at http://localhost:8010"
