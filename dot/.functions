@@ -160,3 +160,36 @@ aipr() {
     # Launch Raycast AI command with diff data
     open -g "raycast://ai-commands/pr-description?arguments={\"diff\":\"$diff\"}"
 }
+
+# Find and cd into a directory using fzf, excluding hidden directories
+dn() {
+  local dir
+  # -mindepth 1: Excludes the current directory '.' from the list
+  # -not -path '*/\.*': Excludes any directory starting with a dot (and its subdirectories)
+  # sed 's|^\./||': Strips the leading './' from the paths for a cleaner fzf UI
+  dir=$(find . -mindepth 1 -type d -not -path '*/\.*' 2>/dev/null | sed 's|^\./||' | fzf --query="$1")
+
+  [ -n "$dir" ] && cd "$dir"
+}
+
+# TODO: cd on steroids (experimental)
+cd() {
+  # 1. Intercept standard behaviors: no args, flags (like -, -P, -L), or exact directories
+  if [ -z "$1" ] || [[ "$1" == -* ]] || [ -d "$1" ]; then
+    builtin cd "$@"
+    return
+  fi
+
+  # 2. Fallback: fuzzy search in the current directory only
+  local dir
+  dir=$(find . -maxdepth 1 -mindepth 1 -type d -printf "%P\n" 2>/dev/null | fzf --query="$1" --select-1 --exit-0)
+
+  # 3. Execute change or error out
+  if [ -n "$dir" ]; then
+    builtin cd "$dir"
+  else
+    echo "cd: no such file or directory: $1" >&2
+    return 1
+  fi
+}
+
