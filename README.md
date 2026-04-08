@@ -13,9 +13,10 @@ On any change, you need to re-run `dotenv` to apply the changes.
 
 ## LanguageTool
 
-To set up a local LanguageTool instance with Spanish n-grams (requires Docker):
+To set up a local LanguageTool instance with Spanish n-grams and fastText:
 
-- Run `~/dotfiles/languagetool-init`.
+- Run `~/dotfiles/languagetool-init` (Homebrew mode, default).
+- Run `~/dotfiles/languagetool-init --docker` to use Docker instead.
 
 ## Credits
 

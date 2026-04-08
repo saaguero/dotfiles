@@ -3,3 +3,4 @@
 .extra
 *.zip
 config/languagetool/ngrams
+config/languagetool/fastText

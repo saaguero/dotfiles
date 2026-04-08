@@ -1,9 +1,35 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 # Resolve the directory of the script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LT_CONFIG_DIR="$SCRIPT_DIR/config/languagetool"
+FASTTEXT_REPO_URL="https://github.com/facebookresearch/fastText.git"
+FASTTEXT_DIR="$LT_CONFIG_DIR/fastText"
+FASTTEXT_MODEL_URL="https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin"
+FASTTEXT_MODEL_PATH="$FASTTEXT_DIR/lid.176.bin"
+LOCAL_SERVER_PROPERTIES="$LT_CONFIG_DIR/server.properties"
+
+print_usage() {
+    echo "Usage: $0 [--docker|--homebrew]"
+    echo ""
+    echo "  --homebrew   Use Homebrew LanguageTool (default)"
+    echo "  --docker     Use Docker LanguageTool"
+}
+
+MODE="homebrew"
+if [ "${1:-}" = "--docker" ] || [ "${1:-}" = "-d" ]; then
+    MODE="docker"
+elif [ "${1:-}" = "--homebrew" ] || [ "${1:-}" = "-b" ] || [ -z "${1:-}" ]; then
+    MODE="homebrew"
+elif [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+    print_usage
+    exit 0
+else
+    echo "Error: Unknown argument '${1:-}'"
+    print_usage
+    exit 1
+fi
 
 if [ ! -d "$LT_CONFIG_DIR" ]; then
     echo "Error: LanguageTool config directory not found at $LT_CONFIG_DIR"
@@ -24,16 +50,65 @@ else
     exit 1
 fi
 
-# 2. Start Docker Compose
-echo "Starting LanguageTool container..."
-if command -v docker-compose &> /dev/null; then
-    docker-compose up -d
-elif docker compose version &> /dev/null; then
-    docker compose up -d
+if [ "$MODE" = "docker" ]; then
+    # 2. Start Docker Compose
+    echo "Starting LanguageTool container..."
+    if command -v docker-compose &> /dev/null; then
+        docker-compose up -d
+    elif docker compose version &> /dev/null; then
+        docker compose up -d
+    else
+        echo "Error: Neither 'docker-compose' nor 'docker compose' found."
+        exit 1
+    fi
+
+    echo "LanguageTool is up and running!"
+    echo "Service is available at http://localhost:8010"
+    exit 0
+fi
+
+# 2. Ensure fastText is available for Homebrew LanguageTool
+if [ ! -d "$FASTTEXT_DIR" ]; then
+    echo "Cloning fastText into $FASTTEXT_DIR..."
+    git clone "$FASTTEXT_REPO_URL" "$FASTTEXT_DIR"
+elif [ ! -f "$FASTTEXT_DIR/Makefile" ]; then
+    echo "Error: $FASTTEXT_DIR exists but does not look like a fastText checkout."
+    exit 1
 else
-    echo "Error: Neither 'docker-compose' nor 'docker compose' found."
+    echo "fastText repository already present in $FASTTEXT_DIR"
+fi
+
+echo "Building fastText binary..."
+make -C "$FASTTEXT_DIR"
+
+if [ ! -f "$FASTTEXT_MODEL_PATH" ]; then
+    echo "Downloading lid.176.bin model..."
+    curl -L "$FASTTEXT_MODEL_URL" -o "$FASTTEXT_MODEL_PATH"
+else
+    echo "fastText model already exists at $FASTTEXT_MODEL_PATH"
+fi
+
+# 3. Copy local server.properties into Homebrew LanguageTool config path
+if [ ! -f "$LOCAL_SERVER_PROPERTIES" ]; then
+    echo "Error: server.properties not found at $LOCAL_SERVER_PROPERTIES"
     exit 1
 fi
 
-echo "LanguageTool is up and running!"
-echo "Service is available at http://localhost:8010"
+if ! command -v brew &> /dev/null; then
+    echo "Error: Homebrew is not installed or not available in PATH."
+    exit 1
+fi
+
+BREW_PREFIX="$(brew --prefix)"
+HOMEBREW_LT_ETC_DIR="$BREW_PREFIX/etc/languagetool"
+HOMEBREW_SERVER_PROPERTIES="$HOMEBREW_LT_ETC_DIR/server.properties"
+
+mkdir -p "$HOMEBREW_LT_ETC_DIR"
+cp "$LOCAL_SERVER_PROPERTIES" "$HOMEBREW_SERVER_PROPERTIES"
+
+echo "Copied server.properties to $HOMEBREW_SERVER_PROPERTIES"
+echo "Starting Homebrew LanguageTool service..."
+brew services start languagetool
+
+echo "LanguageTool Homebrew service is configured and running."
+echo "Default service URL is usually http://localhost:8081"
