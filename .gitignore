@@ -2,5 +2,5 @@
 .poplar.txt
 .extra
 *.zip
-config/languagetool/ngrams
-config/languagetool/fastText
+languagetool/ngrams
+languagetool/fastText

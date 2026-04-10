@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Resolve the directory of the script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LT_CONFIG_DIR="$SCRIPT_DIR/config/languagetool"
+LT_CONFIG_DIR="$SCRIPT_DIR/languagetool"
 FASTTEXT_REPO_URL="https://github.com/facebookresearch/fastText.git"
 FASTTEXT_DIR="$LT_CONFIG_DIR/fastText"
 FASTTEXT_MODEL_URL="https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin"
@@ -107,8 +107,8 @@ mkdir -p "$HOMEBREW_LT_ETC_DIR"
 cp "$LOCAL_SERVER_PROPERTIES" "$HOMEBREW_SERVER_PROPERTIES"
 
 echo "Copied server.properties to $HOMEBREW_SERVER_PROPERTIES"
-echo "Starting Homebrew LanguageTool service..."
-brew services start languagetool
+echo "Restarting Homebrew LanguageTool service..."
+brew services restart languagetool
 
 echo "LanguageTool Homebrew service is configured and running."
 echo "Default service URL is usually http://localhost:8081"
