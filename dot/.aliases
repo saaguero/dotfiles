@@ -64,4 +64,4 @@ fi
 # trying out new aliases
 alias ..="cd .."
 alias cl="clear"
-
+alias cc="claude --dangerously-skip-permissions"
