@@ -172,7 +172,7 @@ dn() {
   [ -n "$dir" ] && cd "$dir"
 }
 
-# TODO: cd on steroids (experimental)
+# cd on steroids (experimental)
 cd() {
   # 1. Intercept standard behaviors: no args, flags (like -, -P, -L), or exact directories
   if [ -z "$1" ] || [[ "$1" == -* ]] || [ -d "$1" ]; then
@@ -193,3 +193,10 @@ cd() {
   fi
 }
 
+# Easy git worktree switching with fzf
+gw() {
+    local target=$(git worktree list | fzf --height 40% --reverse --info=inline)
+    if [ -n "$target" ]; then
+        cd "$(echo "$target" | awk '{print $1}')"
+    fi
+}
