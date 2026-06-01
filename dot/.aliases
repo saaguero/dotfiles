@@ -64,4 +64,6 @@ fi
 # trying out new aliases
 alias ..="cd .."
 alias cl="clear"
-alias cc="ANTHROPIC_MODEL=claude-opus-4-6 claude --dangerously-skip-permissions"
+# alias cc="ANTHROPIC_MODEL=claude-opus-4-6[1m] claude --dangerously-skip-permissions"
+alias cc="claude --dangerously-skip-permissions"
+alias agents="claude agents"
