@@ -172,6 +172,39 @@ dn() {
   [ -n "$dir" ] && cd "$dir"
 }
 
+# Pick a folder that has an `ai/` subfolder (fzf), cd into it and open Claude Code.
+# Roots are configurable: export CCD_ROOTS=(~/foo ~/bar) to override, or set it to
+# ("$HOME") to scan everything (slower + noisier). Pass a query as $1 to pre-filter;
+# a single match is auto-selected.
+ccd() {
+  local roots=("${CCD_ROOTS[@]}")
+  [ ${#roots[@]} -eq 0 ] && roots=(
+    "$HOME/Documents/zotero/ucalp-filosofia"
+    "$HOME/projects"
+    "$HOME/personal"
+  )
+  # keep only roots that actually exist (find errors on missing paths otherwise)
+  local r existing=()
+  for r in "${roots[@]}"; do [ -d "$r" ] && existing+=("$r"); done
+  [ ${#existing[@]} -eq 0 ] && { echo "ccd: no valid roots in CCD_ROOTS" >&2; return 1; }
+
+  # -maxdepth keeps it fast: the `ai/` convention lives shallow, so we never
+  # descend into giant trees (e.g. ~/work went 9s -> 0.1s). Tune CCD_MAXDEPTH.
+  # Stream straight into fzf so the picker opens instantly and fills in live.
+  local dir
+  dir=$(
+    find "${existing[@]}" -maxdepth "${CCD_MAXDEPTH:-6}" \
+      \( -name '.*' -o -name node_modules -o -name vendor -o -path '*/Library/*' \) -prune -o \
+      -type d -name ai -print 2>/dev/null \
+    | awk '!seen[$0]++' \
+    | fzf --query="$1" --select-1 --exit-0 --prompt='ai ▸ ' --height=40% --reverse
+  )
+
+  [ -n "$dir" ] || return 0
+  cd "$dir" || return 1
+  claude --dangerously-skip-permissions
+}
+
 # cd on steroids (experimental)
 cd() {
   # 1. Intercept standard behaviors: no args, flags (like -, -P, -L), or exact directories
