@@ -14,10 +14,11 @@ fi
 IFS='|' read -r s i n c w p < <(tmux display-message -p -t "$TMUX_PANE" \
   '#{session_name}|#{window_index}|#{window_name}|#{pane_current_command}|#{window_id}|#{pane_title}')
 
-# Desktop notification (OSC 777) + remember the window in @last_bell.
+# Desktop notification (OSC 777 written straight to the Ghostty client PTY) + remember window.
 "$HOME/.config/tmux/notify-bell.sh" "$s" "$i" "$n" "$c" "$w" "$p"
 
-# Bell -> paints the window RED in the status bar. alert-bell is OFF, so this only
-# marks (it does not fire a notification, so it cannot loop).
-printf '\a' > /dev/tty 2>/dev/null
+# Red flag: ask Claude to emit a BEL on our behalf. Hooks have NO controlling terminal
+# (can't write /dev/tty), so the BEL must go through the `terminalSequence` output field;
+# Claude emits it into the pane and tmux paints the window red. Needs Claude Code v2.1.141+.
+printf '{"terminalSequence":"\\u0007"}'
 exit 0
