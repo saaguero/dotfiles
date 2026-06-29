@@ -41,7 +41,7 @@ keybind = cmd+r=esc:q,
 
 # Jump to the window/session that alerted (something finished, e.g. Claude).
 # Sends prefix+B (not U) because TPM uses prefix+U for plugin updates.
-keybind = cmd+shift+u=esc:qB
+keybind = cmd+u=esc:qB
 
 # Sessions
 keybind = cmd+n=esc:qN
