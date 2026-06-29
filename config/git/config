@@ -98,6 +98,9 @@
 	# Make `git rebase` safer on OS X
 	# More info: <http://www.git-tower.com/blog/make-git-rebase-safe-on-osx/>
 	trustctime = false
+	# Global pre-commit hooks (e.g. gitleaks secret scan). The dir + hook
+	# scripts live in this repo at config/git/hooks/ and deploy via dotenv.
+	hooksPath = ~/.config/git/hooks
 
 [color]
 	ui = auto

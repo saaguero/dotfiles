@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Defense-in-depth: scan staged changes for secrets before committing.
+# Install the scanner with: brew install gitleaks   (uses v8.19+ syntax)
+# This hook is portable because it lives in the repo (.githooks/). Activate it on
+# each machine after cloning with:  git config core.hooksPath .githooks
+if command -v gitleaks >/dev/null 2>&1; then
+  if ! gitleaks git --staged --redact --no-banner; then
+    echo "❌ gitleaks found potential secrets in staged changes — commit aborted."
+    echo "   Review the findings above. To bypass intentionally: git commit --no-verify"
+    exit 1
+  fi
+else
+  echo "⚠️  gitleaks not installed; skipping secret scan (brew install gitleaks)."
+fi
+exit 0
