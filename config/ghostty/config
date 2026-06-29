@@ -1,5 +1,8 @@
 # use cmd+shift+, to reload the config
 
+cursor-style = block
+cursor-style-blink = false
+
 macos-titlebar-style = hidden
 
 maximize = true
@@ -10,10 +13,45 @@ window-padding-y = 0
 shell-integration-features = no-cursor,no-sudo,no-title
 font-size = 18
 
-keybind = super+enter=ignore
-keybind = super+n=ignore
-keybind = super+t=ignore
+# Ghostty intercepts Cmd and sends tmux's 2nd prefix (M-q = ESC q) + the key.
 
-cursor-style = block
-cursor-style-blink = false
+# Windows (tabs)
+keybind = cmd+shift+left_bracket=esc:q[
+keybind = cmd+shift+right_bracket=esc:q]
+keybind = cmd+t=esc:qc
+keybind = cmd+w=esc:qx
+keybind = cmd+digit_1=esc:q1
+keybind = cmd+digit_2=esc:q2
+keybind = cmd+digit_3=esc:q3
+keybind = cmd+digit_4=esc:q4
+keybind = cmd+digit_5=esc:q5
+keybind = cmd+digit_6=esc:q6
+keybind = cmd+digit_7=esc:q7
+keybind = cmd+digit_8=esc:q8
+keybind = cmd+digit_9=esc:q9
 
+# Panes
+keybind = cmd+d=esc:q%
+keybind = cmd+shift+d=esc:q-
+keybind = cmd+enter=esc:qz
+
+# Search scrollback / rename window
+keybind = cmd+f=esc:qF
+keybind = cmd+r=esc:q,
+
+# Jump to the window/session that alerted (something finished, e.g. Claude).
+# Sends prefix+B (not U) because TPM uses prefix+U for plugin updates.
+keybind = cmd+shift+u=esc:qB
+
+# Sessions
+keybind = cmd+n=esc:qN
+keybind = cmd+shift+n=esc:qM
+keybind = cmd+s=esc:qs
+keybind = cmd+shift+w=esc:qX
+keybind = cmd+shift+r=esc:q$
+keybind = cmd+shift+up=esc:q(
+keybind = cmd+shift+down=esc:q)
+
+# Toggle previous session / last window
+keybind = cmd+j=esc:qj
+keybind = cmd+l=esc:ql
