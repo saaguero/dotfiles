@@ -2,36 +2,27 @@
 #
 # Like tmux-sessionizer, but opens the picked directory in a NEW WINDOW of the
 # current session instead of creating/switching to a whole session.
-# Keep the search_dirs list in sync with tmux-sessionizer.
+# Candidate dirs and the fzf toggles are shared via tmux-project-dirs.
 
 if [[ $# -eq 1 ]]; then
     selected=$1
 else
-    # path:depth — default depth is 1; bump it for roots with nested repos.
-    search_dirs=(
-        "$HOME:1"
-        "$HOME/work:2"
-        "$HOME/Library/CloudStorage/Dropbox:1"
-        "$HOME/temp:1"
-        "$HOME/temp/investigation:1"
-        "$HOME/personal:1"
-        "$HOME/projects:1"
-        "$HOME/Documents/zotero/ucalp-filosofia:1"
-    )
-
-    # ignore hidden files/folders
-    selected=$(
-        for entry in "${search_dirs[@]}"; do
-            find "${entry%:*}" -mindepth 1 -maxdepth "${entry##*:}" -type d -not -path '*/[@.]*' 2>/dev/null
-        done | fzf
-    )
+    # candidate dirs come from the shared lister; Enter just opens the picked dir.
+    # ctrl-g toggles "only dirs with a CLAUDE.md"; ctrl-s toggles "study" dirs
+    # (zotero materials + Obsidian vault). Neither runs Claude — that's `ccd`.
+    lister="$(dirname "$0")/tmux-project-dirs"
+    selected=$("$lister" | fzf \
+        --prompt 'all> ' \
+        --header 'ctrl-g: only CLAUDE.md   ctrl-s: study' \
+        --bind "ctrl-g:transform:[ \"\$FZF_PROMPT\" = 'claude> ' ] && echo 'change-prompt(all> )+reload($lister)' || echo 'change-prompt(claude> )+reload($lister --claude)'" \
+        --bind "ctrl-s:transform:[ \"\$FZF_PROMPT\" = 'study> ' ] && echo 'change-prompt(all> )+reload($lister)' || echo 'change-prompt(study> )+reload($lister --study)'")
 fi
 
 if [[ -z $selected ]]; then
     exit 0
 fi
 
-selected_name=$(basename "$selected" | tr . _)
+selected_name=$(basename "$selected" | tr ' .:' '___')
 
 if [[ -n $TMUX ]]; then
     tmux new-window -c "$selected"

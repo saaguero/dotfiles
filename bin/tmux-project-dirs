@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+#
+# Candidate directories for the tmux pickers — single source of truth, shared by
+# tmux-sessionizer, tmux-windowizer and their in-fzf toggles.
+#
+#   (no args)   all candidate dirs
+#   --claude    only dirs that contain a CLAUDE.md
+#   --study     study dirs: zotero materials + the Obsidian vault
+
+# path:depth — depth is find's -maxdepth; bump it for roots with nested repos.
+search_dirs=(
+    "$HOME:1"
+    "$HOME/work:2"
+    "$HOME/Library/CloudStorage/Dropbox:1"
+    "$HOME/temp:1"
+    "$HOME/temp/investigation:1"
+    "$HOME/personal:1"
+    "$HOME/projects:1"
+    "$HOME/Documents/zotero:2"
+    "$HOME/Documents/vault:2"
+)
+
+# study roots for --study
+study_dirs=(
+    "$HOME/Documents/zotero:2"
+    "$HOME/Documents/vault:2"
+)
+
+# emit the dirs for a list of "path:depth" entries (ignores hidden files/folders)
+emit() {
+    local entry
+    for entry in "$@"; do
+        find "${entry%:*}" -mindepth 1 -maxdepth "${entry##*:}" -type d -not -path '*/[@.]*' 2>/dev/null
+    done
+}
+
+case $1 in
+    --claude)
+        emit "${search_dirs[@]}" | while IFS= read -r d; do
+            [[ -e "$d/CLAUDE.md" ]] && printf '%s\n' "$d"
+        done
+        ;;
+    --study)
+        emit "${study_dirs[@]}"
+        ;;
+    *)
+        emit "${search_dirs[@]}"
+        ;;
+esac
