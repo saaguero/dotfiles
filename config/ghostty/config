@@ -19,6 +19,8 @@ font-size = 18
 keybind = cmd+shift+left_bracket=esc:q[
 keybind = cmd+shift+right_bracket=esc:q]
 keybind = cmd+t=esc:qc
+# open the fzf picker and put the chosen dir in a NEW WINDOW (prefix+T -> tmux-windowizer)
+keybind = cmd+shift+t=esc:qT
 keybind = cmd+w=esc:qx
 keybind = cmd+digit_1=esc:q1
 keybind = cmd+digit_2=esc:q2
@@ -55,3 +57,6 @@ keybind = cmd+shift+down=esc:q)
 # Toggle previous session / last window
 keybind = cmd+j=esc:qj
 keybind = cmd+l=esc:ql
+
+# New window SSHing into the home Linux box
+keybind = cmd+shift+l=esc:qG
