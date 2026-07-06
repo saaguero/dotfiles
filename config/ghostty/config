@@ -36,6 +36,7 @@ keybind = cmd+digit_9=esc:q9
 keybind = cmd+d=esc:q%
 keybind = cmd+shift+d=esc:q-
 keybind = cmd+enter=esc:qz
+keybind = cmd+o=esc:qo
 
 # Search scrollback / rename window
 keybind = cmd+f=esc:qF
