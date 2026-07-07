@@ -59,8 +59,10 @@ if hash /opt/homebrew/bin/brew &>/dev/null; then
     export PATH="/opt/homebrew/sbin:$PATH"
 
     # use gnu coreutils instead of the default macOS
-    export PATH="$(brew --prefix coreutils)/libexec/gnubin:$PATH"
-    export PATH="$(brew --prefix findutils)/libexec/gnubin:$PATH"
+    # (hardcoded: `brew --prefix <formula>` is always /opt/homebrew/opt/<formula>,
+    # and each call forks brew, ~30ms per call at every shell startup)
+    export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
+    export PATH="/opt/homebrew/opt/findutils/libexec/gnubin:$PATH"
 fi
 
 # REVIEW_BASE is use in git aliases
@@ -70,6 +72,13 @@ if [ -d "$ASDF_DATA_DIR" ] || [ -d "$HOME/.asdf" ]; then
     export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 fi
 
+# virtualenvwrapper: lazy-loaded (the real source forks a Python, ~90ms at
+# every shell startup). The first use of any of its commands loads the real
+# thing and re-runs that command transparently.
 if hash virtualenvwrapper.sh &>/dev/null; then
-    source virtualenvwrapper.sh
+    _venvwrap_cmds="workon mkvirtualenv rmvirtualenv lsvirtualenv cdvirtualenv cdsitepackages mktmpenv"
+    for _cmd in $_venvwrap_cmds; do
+        eval "$_cmd() { unset -f $_venvwrap_cmds; source virtualenvwrapper.sh; $_cmd \"\$@\"; }"
+    done
+    unset _cmd _venvwrap_cmds
 fi

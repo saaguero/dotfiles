@@ -22,6 +22,8 @@ keybind = cmd+t=esc:qc
 # open the fzf picker and put the chosen dir in a NEW WINDOW (prefix+T -> tmux-windowizer)
 keybind = cmd+shift+t=esc:qT
 keybind = cmd+w=esc:qx
+# kill the whole window (Opt+W; M-w is free in bash and in vi copy-mode)
+keybind = alt+w=esc:q&
 keybind = cmd+digit_1=esc:q1
 keybind = cmd+digit_2=esc:q2
 keybind = cmd+digit_3=esc:q3

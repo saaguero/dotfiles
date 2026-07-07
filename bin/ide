@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# ide — split the CURRENT tmux window (in place) into a dev layout:
+#
+#   +----------------------+-----------+
+#   |                      |           |
+#   |   vim (this pane)    |  agent    |  <- 35% width, default: opencode
+#   |                      |           |
+#   +----------------------+-----------+
+#   |   terminal (full width)          |  <- 25% height
+#   +----------------------------------+
+#
+# Usage:
+#   ide                  # vim + opencode + terminal, in the current directory
+#   ide claude-local     # any other agent command in the right pane
+#
+# No new session, no new window: the pane where you run it becomes the editor.
+# Meant to be run in a window with a single pane (a fresh one is ideal).
+set -euo pipefail
+
+# Make sure the usual bins resolve even when invoked as a tmux window command
+# (server environment has a minimal PATH, no shell profile involved).
+PATH="$HOME/.local/bin:$HOME/.opencode/bin:$PATH"
+
+AGENT="${*:-opencode}"
+DIR="$PWD"
+
+if [ -z "${TMUX:-}" ]; then
+  echo "ide: must be run inside tmux" >&2
+  exit 1
+fi
+
+# Resolve the agent binary NOW (this environment has the full PATH; the tmux
+# server may not), so the pane can exec it directly with no shell startup.
+read -ra AGENT_WORDS <<< "$AGENT"
+AGENT_BIN=$(command -v "${AGENT_WORDS[0]}") || {
+  echo "ide: agent command not found: ${AGENT_WORDS[0]}" >&2
+  exit 1
+}
+AGENT_CMD="$AGENT_BIN ${AGENT_WORDS[*]:1}"
+
+# Name the window after the directory (usually the project name)
+tmux rename-window -t "$TMUX_PANE" "$(basename "$DIR")"
+
+# Bottom terminal: 25% of the height, full width (-d keeps focus here)
+tmux split-window -d -v -l '25%' -c "$DIR" -t "$TMUX_PANE"
+
+# Agent pane: 35% of the width, no intermediate shell (the pane closes when
+# the agent exits). allow-passthrough is turned OFF for that pane BEFORE the
+# agent starts: its terminal-graphics probe would otherwise reach the outer
+# terminal, whose reply lands on the ACTIVE pane — i.e. inside vim, as
+# garbage text ("=31337;OK"). With passthrough off the probe dies in tmux
+# and vim can start right away, no waiting.
+tmux split-window -d -h -l '35%' -c "$DIR" -t "$TMUX_PANE" \
+    "sh -c 'tmux set-option -p -t \"\$TMUX_PANE\" allow-passthrough off; exec $AGENT_CMD'"
+
+# discard anything that may have already landed on this pane, then go
+while IFS= read -r -s -t 0.05 -n 256 _; do :; done
+exec vim

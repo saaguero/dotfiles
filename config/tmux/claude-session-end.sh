@@ -13,6 +13,10 @@ wname="$(tmux display-message -p -t "$TMUX_PANE" '#{window_name}' 2>/dev/null)"
 [ "$wname" = "$topic" ] || exit 0      # user renamed manually since -> leave it
 
 tmux set-option -w -t "$TMUX_PANE" -u @claude_topic 2>/dev/null
+# Also drop the LLM-shortening bookkeeping from rename-to-topic.sh.
+tmux set-option -w -t "$TMUX_PANE" -u @claude_topic_full 2>/dev/null
+tmux set-option -w -t "$TMUX_PANE" -u @claude_topic_try 2>/dev/null
+tmux set-option -w -t "$TMUX_PANE" -u @claude_topic_try_ts 2>/dev/null
 # Unset the window-level option so it inherits the global default (on) and the
 # window resumes tracking the running command.
 tmux set-option -w -t "$TMUX_PANE" -u automatic-rename 2>/dev/null

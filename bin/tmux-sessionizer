@@ -2,16 +2,22 @@
 
 if [[ $# -eq 1 ]]; then
     selected=$1
+    key=""
 else
     # candidate dirs come from the shared lister; Enter just opens the picked dir.
     # ctrl-g toggles "only dirs with a CLAUDE.md"; ctrl-s toggles "study" dirs
     # (zotero materials + Obsidian vault). Neither runs Claude — that's `ccd`.
+    # ctrl-o accepts the selection AND opens it with the `ide` layout
+    # (vim + agent + terminal, see ~/.local/bin/ide).
     lister="$(dirname "$0")/tmux-project-dirs"
-    selected=$("$lister" | fzf \
+    out=$("$lister" | fzf \
+        --expect 'ctrl-o' \
         --prompt 'all> ' \
-        --header 'ctrl-g: only CLAUDE.md   ctrl-s: study' \
+        --header 'ctrl-g: only CLAUDE.md   ctrl-s: study   ctrl-o: open as IDE' \
         --bind "ctrl-g:transform:[ \"\$FZF_PROMPT\" = 'claude> ' ] && echo 'change-prompt(all> )+reload($lister)' || echo 'change-prompt(claude> )+reload($lister --claude)'" \
         --bind "ctrl-s:transform:[ \"\$FZF_PROMPT\" = 'study> ' ] && echo 'change-prompt(all> )+reload($lister)' || echo 'change-prompt(study> )+reload($lister --study)'")
+    key=$(head -n1 <<< "$out")
+    selected=$(sed -n '2p' <<< "$out")
 fi
 
 if [[ -z $selected ]]; then
@@ -20,13 +26,26 @@ fi
 
 selected_name=$(basename "$selected" | tr ' .:' '___')
 tmux_running=$(pgrep tmux)
+
 if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
+    if [[ $key == "ctrl-o" ]]; then
+        tmux new-session -ds "$selected_name" -c "$selected" "$HOME/.local/bin/ide"
+        exec tmux attach -t "=$selected_name"
+    fi
     tmux new-session -s "$selected_name" -c "$selected"
     exit 0
 fi
 
 if ! tmux has-session -t="$selected_name" 2> /dev/null; then
-    tmux new-session -ds "$selected_name" -c "$selected"
+    if [[ $key == "ctrl-o" ]]; then
+        # brand-new session, IDE layout as its initial window (no shell startup)
+        tmux new-session -ds "$selected_name" -c "$selected" "$HOME/.local/bin/ide"
+    else
+        tmux new-session -ds "$selected_name" -c "$selected"
+    fi
+elif [[ $key == "ctrl-o" ]]; then
+    # existing session: open the IDE layout in a fresh window there
+    tmux new-window -t "=$selected_name" -c "$selected" "$HOME/.local/bin/ide"
 fi
 
 tmux switch-client -t "$selected_name"

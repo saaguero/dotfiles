@@ -1,4 +1,4 @@
-# Base16 Styling Guidelines:
+# Base1 Styling Guidelines:
 
 base00=default   # - Default
 base01='#151515' # - Lighter Background (Used for status bars)
@@ -21,15 +21,16 @@ set -g status-left-length 32
 set -g status-right-length 150
 set -g status-interval 5
 
-# default statusbar colors
-set-option -g status-style fg=$base02,bg=$base00,default
+# default statusbar colors — solid background so the bar reads apart from
+# the app below (single line, no separator needed; HolaMundo/omarchy style)
+set-option -g status-style fg=$base05,bg=$base01
 
-set-window-option -g window-status-style fg=$base03,bg=$base00
-set-window-option -g window-status-format " #I #W"
+set-window-option -g window-status-style fg=$base03,bg=$base01
+set-window-option -g window-status-format " #I:#W "
 
-# active window title colors
-set-window-option -g window-status-current-style fg=$base0C,bg=$base00
-set-window-option -g window-status-current-format " #[bold]#W"
+# active window = bright accent text (the block goes on the session name)
+set-window-option -g window-status-current-style fg=$base0D,bg=$base01,bold
+set-window-option -g window-status-current-format " #I:#W "
 
 # pane border colors
 set-window-option -g pane-active-border-style fg=$base0C
@@ -45,10 +46,13 @@ set-option -g display-panes-colour $base01
 # clock
 set-window-option -g clock-mode-colour $base0C
 
-tm_session_name="#[default,bg=$base00,fg=$base0E] #S "
-set -g status-left "$tm_session_name"
+# session name = accent block on the left (like HolaMundo's "Work" tab)
+tm_session_name="#[fg=$base01,bg=$base0D,bold] #S #[default]"
+set -g status-left "$tm_session_name "
 
-tm_date="#[default,bg=$base00,fg=$base0C] %R"
-# set -g status-right "#(/bin/bash $HOME/.tmux/plugins/kube-tmux/kube.tmux 250 red cyan) |$tm_date"
-set -g status-right "#(/bin/bash $XDG_CONFIG_HOME/tmux/plugins/kube-tmux/kube.tmux 250 red cyan) |$tm_date"
+tm_date="#[fg=$base0C] %R "
+# kube-tmux, with long EKS context ARNs trimmed down to "cluster:namespace"
+tm_kube="#(/bin/bash $XDG_CONFIG_HOME/tmux/plugins/kube-tmux/kube.tmux 250 red cyan | sed -E 's|arn:aws:eks:[^:]+:[0-9]+:cluster/||')"
+set -g status-right "$tm_kube #[fg=$base04]│$tm_date"
+set -g status on
 
