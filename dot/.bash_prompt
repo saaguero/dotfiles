@@ -54,7 +54,10 @@ parse_svn_branch() {
 
 branch_info="\[$BOLD\]\[$WHITE\]\$([[ -n \$(git branch 2> /dev/null) || \$(upsearch .svn) ]] && echo \" -> \")\[$RESET\]\[$PURPLE\]\$(parse_git_branch)\$(parse_svn_branch)"
 
-export PS1="\n\[$YELLOW\]\u@\h: \[$GREEN\]\w$branch_info\[$WHITE\]\[$BOLD\]\n λ \[$RESET\]"
+# The last line's colors must come AFTER its \n: readline (bash 5.3+) repaints
+# the final prompt line on its own, and codes placed before the newline belong
+# to the previous line — the repaint dropped them (white λ instead of gray).
+export PS1="\n\[$YELLOW\]\u@\h: \[$GREEN\]\w$branch_info\n\[$WHITE\]\[$BOLD\] λ \[$RESET\]"
 
 export PS2="\[$ORANGE\]→ \[$RESET\]"
 
