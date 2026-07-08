@@ -1,100 +1,185 @@
 #!/usr/bin/env bash
-# tmux pane-title-changed hook: rename the window to Claude Code's session topic.
-# Claude Code mirrors its conversation topic into the terminal title (pane_title),
-# with a spinner glyph in front while it works. As soon as the topic shows up,
-# the window takes that name, so the status bar says what each session is about.
-# Manual renames win: a window you renamed yourself is never overridden again.
+# tmux pane-title-changed hook: label each Claude Code pane with its topic.
+# Claude mirrors its conversation topic into the pane title (with a leading
+# spinner); this shortens it to a 1-2 word label via an LLM and:
+#   - stores it as a PER-PANE option @claude_topic, shown in the pane border
+#     (pane-border-format) -- so several Claude panes in ONE window each show
+#     their own topic instead of fighting over the single window name;
+#   - if the pane is active, also sets the WINDOW name to that label (and an
+#     after-select-pane hook re-points the window name when you switch panes).
+# A window you renamed yourself (Cmd+R) is never overridden.
 #
-# The topic is shortened to a 1-2 word label ("Tmux", "HolaMundo") by a
-# headless `claude -p` call; the window is renamed ONLY when that label
-# arrives (no intermediate truncated name).
-#   $1 = pane id (#{hook_pane})
+# Backend: Claude Haiku (headless `claude -p`); on empty output (failure / rate
+# limit / usage limit) it falls back to OpenRouter's free-models router. The hook
+# fires ~10x/s per pane (spinner), so three guards stop process pile-up: a
+# per-topic throttle, a global in-flight cap, and a per-pane single-flight lock.
+#
+# Usage:  rename-to-topic.sh <pane-id>          # pane-title-changed hook
+#         rename-to-topic.sh --activate <pane>  # after-select-pane hook
+
+RETRY_SECS=90     # per-topic: don't re-ask the LLM about the same topic within this
+LLM_TIMEOUT=30    # hard cap per backend call (claude / curl): a hung call can't linger
+STALE_SECS=90     # reclaim a lock if a run died holding it (> worst-case hold)
+MAX_INFLIGHT=4    # global backstop: at most this many shortenings at once (all panes)
+LOCKDIR="${TMPDIR:-/tmp}"
+LOCKGLOB="$LOCKDIR/claude-rename-topic.*.lock"
+OPENROUTER_KEYFILE="$HOME/.config/tmux/openrouter.key"   # mode-600, kept out of dotfiles
+OPENROUTER_MODEL="openrouter/free"
+
+# Set the WINDOW name of pane $1 to label $2. We track the name we set in the
+# window option @claude_named:
+#   - first time (no @claude_named): claim the window and name it;
+#   - afterwards: keep updating only while the name is still ours -- a manual
+#     Cmd+R rename since then makes cur != @claude_named, so we back off for good.
+# (Based solely on @claude_named, not automatic-rename, so a window named by an
+# older version of this script -- no marker, automatic-rename already off -- still
+# gets adopted instead of looking like a manual rename.)
+maybe_set_window_name() {
+  local p="$1" nm="$2" cur named
+  cur="$(tmux display-message -p -t "$p" '#{window_name}' 2>/dev/null)"
+  named="$(tmux show-option -wqv -t "$p" @claude_named 2>/dev/null)"
+  [ -n "$named" ] && [ "$cur" != "$named" ] && return 0
+  tmux rename-window -t "$p" "$nm" 2>/dev/null
+  tmux set-option -w -t "$p" @claude_named "$nm" 2>/dev/null
+}
+
+# after-select-pane: point the window name at the now-active pane's label.
+if [ "${1:-}" = "--activate" ]; then
+  ap="${2:-}"
+  [ -n "$ap" ] || exit 0
+  lbl="$(tmux show-option -pqv -t "$ap" @claude_topic 2>/dev/null)"
+  [ -n "$lbl" ] || exit 0
+  maybe_set_window_name "$ap" "$lbl"
+  exit 0
+fi
+
 pane="${1:-}"
 [ -n "$pane" ] || exit 0
+LOCK="$LOCKDIR/claude-rename-topic.$(printf '%s' "$pane" | tr -cd 'A-Za-z0-9').lock"
 
-RETRY_SECS=90
-
-IFS='|' read -r cmd title wname autoren <<EOF
-$(tmux display-message -p -t "$pane" \
-  '#{pane_current_command}|#{pane_title}|#{window_name}|#{automatic-rename}' 2>/dev/null)
+IFS='|' read -r cmd title <<EOF
+$(tmux display-message -p -t "$pane" '#{pane_current_command}|#{pane_title}' 2>/dev/null)
 EOF
 
-# Only panes running Claude Code: the CLI shows up as "claude" or as its bare
-# version number (e.g. "2.1.198", the versioned binary). Skip plain shells.
+# Only Claude Code panes. pane_current_command shows Claude as "claude", "node",
+# or a bare version number (e.g. "2.1.204", the versioned binary) -- but
+# "node"/version also match unrelated processes (dev servers, REPLs). For those,
+# confirm via the pane tty (flag-agnostic: matches with or without --dangerously-*).
+# This keeps the LLM -- and any token spend -- off shells and other commands.
 case "$cmd" in
-  claude*|node|[0-9]*.[0-9]*) ;;
-  *) exit 0 ;;
+  claude*) ;;                         # the CLI itself -> definitely Claude
+  node|[0-9]*.[0-9]*)                 # ambiguous -> verify via the pane's tty
+    tty="$(tmux display-message -p -t "$pane" '#{pane_tty}' 2>/dev/null)"
+    ps -t "${tty#/dev/}" -o command= 2>/dev/null | grep -qi 'claude' || exit 0
+    ;;
+  *) exit 0 ;;                        # plain shells / other commands -> never touch
 esac
 
-# Strip the leading spinner/decoration (same cleanup notify-bell.sh does).
+# Strip the leading spinner/decoration; bail if there's no real topic yet.
 topic="$(printf '%s' "$title" | sed -E 's/^[^A-Za-z0-9]*//; s/[[:space:]]+$//')"
 [ -n "$topic" ] || exit 0
 [ "$topic" = "$cmd" ] && exit 0   # title is just the command name, no topic yet
 
-# Respect deliberate names: on the first rename only touch auto-named windows
-# (automatic-rename still on); afterwards, only keep following the topic while
-# the name is still the one we set (@claude_topic). A Cmd+R rename ends both.
-last="$(tmux show-option -wqv -t "$pane" @claude_topic 2>/dev/null)"
-if [ -z "$last" ]; then
-  [ "$autoren" = "1" ] || exit 0
-else
-  [ "$wname" = "$last" ] || exit 0
-fi
-
-# Topic already shortened by the LLM and the name is still ours -> nothing new.
-lastfull="$(tmux show-option -wqv -t "$pane" @claude_topic_full 2>/dev/null)"
+# Already labeled this exact topic for THIS pane -> nothing new.
+lastfull="$(tmux show-option -pqv -t "$pane" @claude_topic_full 2>/dev/null)"
 [ "$topic" = "$lastfull" ] && exit 0
 
-# --- LLM shortening (the only rename; everything below may exit early) ---
-CLAUDE_BIN="$HOME/.local/bin/claude"
-[ -x "$CLAUDE_BIN" ] || CLAUDE_BIN="$(command -v claude 2>/dev/null)"
-[ -n "$CLAUDE_BIN" ] && [ -x "$CLAUDE_BIN" ] || exit 0
+# --- backends: each prints the raw first non-empty reply line (or nothing) ---
+# Claude Haiku, headless. Unset TMUX/TMUX_PANE so the call doesn't trip the
+# Stop/SessionEnd hooks. perl's alarm is the watchdog (macOS has no `timeout`).
+shorten_claude() {
+  local bin="$HOME/.local/bin/claude"
+  [ -x "$bin" ] || bin="$(command -v claude 2>/dev/null)"
+  [ -n "$bin" ] && [ -x "$bin" ] || return 0
+  cd "$HOME" && env -u TMUX -u TMUX_PANE \
+    perl -e 'alarm shift; exec @ARGV' "$LLM_TIMEOUT" "$bin" -p --model haiku "$1" 2>/dev/null \
+    | awk 'NF {print; exit}'
+}
 
-# The hook fires constantly while Claude works (the spinner animates the title):
-# retry the same topic at most every RETRY_SECS. Setting the marker BEFORE the
-# request also keeps concurrent hook runs from stacking duplicate calls.
+# OpenRouter free-models router, via curl. No jq / no key file -> skip.
+shorten_openrouter() {
+  local jq; jq="$(command -v jq)"
+  [ -n "$jq" ] || return 0
+  [ -r "$OPENROUTER_KEYFILE" ] || return 0
+  local key; key="$(tr -d '[:space:]' < "$OPENROUTER_KEYFILE")"
+  [ -n "$key" ] || return 0
+  local body
+  body="$("$jq" -nc --arg m "$OPENROUTER_MODEL" --arg c "$1" \
+    '{model:$m, messages:[{role:"user",content:$c}]}')" || return 0
+  curl -sS --max-time "$LLM_TIMEOUT" https://openrouter.ai/api/v1/chat/completions \
+    -H "Authorization: Bearer $key" \
+    -H 'Content-Type: application/json' \
+    -d "$body" 2>/dev/null \
+    | "$jq" -r '.choices[0].message.content // empty' 2>/dev/null \
+    | awk 'NF {print; exit}'
+}
+
+# The hook fires constantly while Claude works (the spinner animates the title).
+# Three guards keep this cheap and stop process pile-up WITHOUT hurting several
+# simultaneous conversations:
+#   1) per-topic throttle: don't re-ask about the same topic within RETRY_SECS.
+#   2) global backstop: never more than MAX_INFLIGHT shortenings running at once.
+#   3) per-pane single-flight lock: one in-flight rename PER PANE -- different
+#      panes/conversations run in parallel; a single pane's spinner burst
+#      serializes. Contending runs exit instantly (cheap failed mkdir, no fork).
 now="$(date +%s)"
-try_topic="$(tmux show-option -wqv -t "$pane" @claude_topic_try 2>/dev/null)"
-try_ts="$(tmux show-option -wqv -t "$pane" @claude_topic_try_ts 2>/dev/null)"
+
+# (1) throttle -- most repeat fires exit right here, before touching any lock.
+try_topic="$(tmux show-option -pqv -t "$pane" @claude_topic_try 2>/dev/null)"
+try_ts="$(tmux show-option -pqv -t "$pane" @claude_topic_try_ts 2>/dev/null)"
 if [ "$try_topic" = "$topic" ] && [ -n "$try_ts" ] && [ $((now - try_ts)) -lt "$RETRY_SECS" ]; then
   exit 0
 fi
-tmux set-option -w -t "$pane" @claude_topic_try "$topic" 2>/dev/null
-tmux set-option -w -t "$pane" @claude_topic_try_ts "$now" 2>/dev/null
 
-prompt="Reply with ONLY a short label naming the main subject of this terminal-session topic: 1 word if possible, 2 words only if a single word would be ambiguous. Keep the topic's language. No punctuation, no quotes, no explanation.
+# Reclaim stale locks (runs killed before their EXIT trap fired) so a dead lock
+# neither blocks its pane nor inflates the in-flight count below. perl for the
+# mtime: portable across BSD stat (-f %m) and GNU stat (-c %Y), which differ.
+for d in $LOCKGLOB; do
+  [ -d "$d" ] || continue
+  m="$(perl -e 'print((stat($ARGV[0]))[9] // 0)' "$d" 2>/dev/null)"
+  [ "${m:-0}" -gt 0 ] && [ $((now - m)) -ge "$STALE_SECS" ] && rmdir "$d" 2>/dev/null
+done
+
+# (2) global backstop.
+inflight=0
+for d in $LOCKGLOB; do [ -d "$d" ] && inflight=$((inflight+1)); done
+[ "$inflight" -ge "$MAX_INFLIGHT" ] && exit 0
+
+# (3) per-pane single-flight lock (mkdir is atomic).
+mkdir "$LOCK" 2>/dev/null || exit 0
+trap 'rmdir "$LOCK" 2>/dev/null' EXIT
+
+# Mark this topic attempted now (holding the lock) so repeat fires throttle.
+tmux set-option -p -t "$pane" @claude_topic_try "$topic" 2>/dev/null
+tmux set-option -p -t "$pane" @claude_topic_try_ts "$now" 2>/dev/null
+
+prompt="Give ONLY a 1-2 word label for the main SUBJECT of this terminal-session topic: the specific thing it is about -- a proper noun, work, tool, project or concept. NOT the action: never answer with a generic verb like write/make/fix/debug/create/analyze (or their equivalents in any language). Pick the most recognizable noun; use 2 words only when they identify it better. Keep the topic's language. No punctuation, no quotes, no explanation.
+
+Examples (name the subject, not the verb):
+Topic: write about a novel -> novel
+Topic: fix the login bug -> login
+Topic: migrate the database to a new host -> database
+Topic: set up the CI pipeline -> CI pipeline
 
 Topic: $topic"
 
-# Unset TMUX/TMUX_PANE so the headless call doesn't trip the Stop/SessionEnd
-# hooks (they key off TMUX_PANE and would notify/flag this very window).
-# perl's alarm is the watchdog (macOS has no stock `timeout`).
-name="$(cd "$HOME" && env -u TMUX -u TMUX_PANE \
-  perl -e 'alarm 90; exec @ARGV' -- "$CLAUDE_BIN" -p --model haiku "$prompt" 2>/dev/null \
-  | awk 'NF {print; exit}' \
-  | sed -E 's/^[[:space:]"'"'"'`]+//; s/[[:space:]".'"'"'`]+$//')"
+# Claude Haiku first; fall back to OpenRouter if it comes back empty.
+raw="$(shorten_claude "$prompt")"
+[ -n "$raw" ] || raw="$(shorten_openrouter "$prompt")"
+name="$(printf '%s' "$raw" \
+  | sed -E 's/^[[:space:]"'"'"'`]+//; s/[[:space:]".,:;!?'"'"'`]+$//')"
 [ -n "$name" ] || exit 0
 
 # Enforce the 1-2 word contract even if the model rambles; keep it bar-sized.
 name="$(printf '%s' "$name" | awk '{ if (NF > 2) print $1, $2; else print }')"
 [ "${#name}" -le 25 ] || exit 0
 
-# Re-check before applying: the user may have renamed meanwhile, or a newer
-# topic may have superseded this one during the request. Same rules as above:
-# with no name of ours in place yet, the window must still be auto-named.
-IFS='|' read -r wname2 autoren2 <<EOF
-$(tmux display-message -p -t "$pane" '#{window_name}|#{automatic-rename}' 2>/dev/null)
-EOF
-last2="$(tmux show-option -wqv -t "$pane" @claude_topic 2>/dev/null)"
-try2="$(tmux show-option -wqv -t "$pane" @claude_topic_try 2>/dev/null)"
-if [ -z "$last2" ]; then
-  [ "$autoren2" = "1" ] || exit 0
-else
-  [ "$wname2" = "$last2" ] || exit 0
-fi
-[ "$try2" = "$topic" ] || exit 0
+# Store the per-pane label -> the pane border shows it (pane-border-format).
+tmux set-option -p -t "$pane" @claude_topic "$name" 2>/dev/null
+tmux set-option -p -t "$pane" @claude_topic_full "$topic" 2>/dev/null
 
-tmux rename-window -t "$pane" "$name" 2>/dev/null
-tmux set-option -w -t "$pane" @claude_topic "$name" 2>/dev/null
-tmux set-option -w -t "$pane" @claude_topic_full "$topic" 2>/dev/null
+# If this pane is the active one, also drive the window name (the after-select-pane
+# hook re-points it when you switch panes). Single-pane windows behave as before.
+active="$(tmux display-message -p -t "$pane" '#{pane_active}' 2>/dev/null)"
+[ "$active" = "1" ] && maybe_set_window_name "$pane" "$name"
 exit 0
