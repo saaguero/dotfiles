@@ -37,3 +37,18 @@ if [ -s "$NVM_DIR/nvm.sh" ]; then
         nvm "$@"
     }
 fi
+
+# Prompt: starship, with the old λ prompt ported to ~/.config/starship/starship.toml
+# (.bash_prompt still defines the old PS1 earlier in startup; starship, coming
+# last, wins). To go back to the old prompt: comment out these lines.
+# DISABLED 2026-07-07 (Santi request): back on the classic .bash_prompt λ.
+# Uncomment this block to re-enable starship (config picker: the starship.toml
+# symlink in ~/.config/starship/ -> omarchy.toml / lambda.toml / default.toml).
+#if command -v starship &>/dev/null; then
+#    export STARSHIP_CONFIG="$HOME/.config/starship/starship.toml"
+#    # init script is static per version -> cached (regenerates on upgrade)
+#    if [ ! -s ~/.cache/starship-init.bash ] || [ "$(command -v starship)" -nt ~/.cache/starship-init.bash ]; then
+#        mkdir -p ~/.cache && starship init bash --print-full-init > ~/.cache/starship-init.bash
+#    fi
+#    source ~/.cache/starship-init.bash
+#fi

@@ -82,3 +82,17 @@ if hash virtualenvwrapper.sh &>/dev/null; then
     done
     unset _cmd _venvwrap_cmds
 fi
+
+# PERF trick for python virtualenv
+# workon/rmvirtualenv env-name completion WITHOUT loading virtualenvwrapper
+# (which stays lazy-loaded above): just lists $WORKON_HOME dirs that contain
+# bin/activate. Zero forks, works from the first prompt. Once the real
+# virtualenvwrapper loads (first venv command), its completion takes over.
+_lazy_virtualenvs_complete() {
+	local d envs=()
+	for d in "${WORKON_HOME:-$HOME/.virtualenvs}"/*/; do
+		[ -e "${d}bin/activate" ] && { d=${d%/}; envs+=("${d##*/}"); }
+	done
+	COMPREPLY=($(compgen -W "${envs[*]}" -- "${COMP_WORDS[COMP_CWORD]}"))
+}
+complete -F _lazy_virtualenvs_complete workon rmvirtualenv cdvirtualenv cdsitepackages

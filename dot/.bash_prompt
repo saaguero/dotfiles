@@ -1,14 +1,17 @@
 #!/bin/bash
-export TERM=screen-256color
 
-MAGENTA=$(tput setaf 9)
-ORANGE=$(tput setaf 172)
-YELLOW=$(tput setaf 193)
-GREEN=$(tput setaf 190)
-PURPLE=$(tput setaf 141)
-WHITE=$(tput setaf 243)
-BOLD=$(tput bold)
-RESET=$(tput sgr0)
+# export TERM=screen-256color
+
+# Hardcoded escapes instead of tput forks (saves ~50ms per shell startup).
+# Values captured verbatim from tput with TERM=screen-256color:
+MAGENTA=$'\e[91m'        # tput setaf 9
+ORANGE=$'\e[38;5;172m'   # tput setaf 172
+YELLOW=$'\e[38;5;193m'   # tput setaf 193
+GREEN=$'\e[38;5;190m'    # tput setaf 190
+PURPLE=$'\e[38;5;141m'   # tput setaf 141
+WHITE=$'\e[38;5;243m'    # tput setaf 243
+BOLD=$'\e[1m'            # tput bold
+RESET=$'\e[m\017'        # tput sgr0
 
 upsearch () {
   slashes=${PWD//[^\/]/}
