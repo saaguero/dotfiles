@@ -1,5 +1,10 @@
 # use cmd+shift+, to reload the config
 
+# Theme: themes/current.conf is a symlink managed by `theme-switcher`
+# (fzf picker, also on tmux prefix+t). Optional include (leading ? = no error
+# if missing). To disable theming: comment this line out, reload cmd+shift+,
+config-file = ?"themes/current.conf"
+
 cursor-style = block
 cursor-style-blink = false
 
@@ -37,8 +42,11 @@ keybind = cmd+digit_9=esc:q9
 # Panes
 keybind = cmd+d=esc:q%
 keybind = cmd+shift+d=esc:q-
-keybind = cmd+enter=esc:qz
 keybind = cmd+o=esc:qo
+
+# zoom in both cmd+enter and cmd+z (muscle memory)
+keybind = cmd+enter=esc:qz
+keybind = cmd+z=esc:qz
 
 # Search scrollback / rename window
 keybind = cmd+f=esc:qF

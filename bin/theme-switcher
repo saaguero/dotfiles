@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# theme-switcher — pick a Ghostty/tmux theme with fzf and apply it instantly.
+#
+# Themes are Ghostty palette files in ~/.config/ghostty/themes/<name>.conf
+# (Omarchy-style: background/foreground/cursor-color/palette lines; add a new
+# theme by dropping another .conf there). Selecting one:
+#   1. points themes/current.conf (a symlink, included from the Ghostty
+#      config) at it, so new Ghostty windows and Cmd+Shift+, pick it up;
+#   2. live-applies it to the current terminal via OSC 4/10/11/12 escapes
+#      (tmux-passthrough-wrapped), so the ANSI-based tmux theme follows
+#      immediately, no reload needed.
+#
+# Usage:
+#   theme-switcher                  # interactive fzf picker (works in a tmux popup)
+#   theme-switcher --apply <name>   # non-interactive
+#   theme-switcher --preview <name> # internal: fzf preview pane
+set -euo pipefail
+
+THEMES_DIR="$HOME/.config/ghostty/themes"
+CURRENT="$THEMES_DIR/current.conf"
+
+conf_value() { # conf_value <key> <file>
+  sed -n "s/^$1 = //p" "$2" | head -1
+}
+
+palette_color() { # palette_color <index> <file>
+  sed -n "s/^palette = $1=//p" "$2" | head -1
+}
+
+hex_to_rgb() { # hex_to_rgb "#rrggbb" -> "r;g;b"
+  local h="${1#\#}"
+  printf '%d;%d;%d' "0x${h:0:2}" "0x${h:2:2}" "0x${h:4:2}"
+}
+
+preview() {
+  local f="$THEMES_DIR/$1.conf" i c bg fg
+  [ -f "$f" ] || { echo "missing: $f"; return; }
+  bg=$(conf_value background "$f")
+  fg=$(conf_value foreground "$f")
+  printf '\e[48;2;%sm\e[38;2;%sm  %-18s  \e[0m\n\n' "$(hex_to_rgb "$bg")" "$(hex_to_rgb "$fg")" "$1"
+  for i in 0 1 2 3 4 5 6 7; do
+    c=$(palette_color "$i" "$f"); printf '\e[48;2;%sm    \e[0m' "$(hex_to_rgb "$c")"
+  done
+  printf '\n'
+  for i in 8 9 10 11 12 13 14 15; do
+    c=$(palette_color "$i" "$f"); printf '\e[48;2;%sm    \e[0m' "$(hex_to_rgb "$c")"
+  done
+  printf '\n\nbg %s   fg %s\n' "$bg" "$fg"
+}
+
+apply_live() { # emit OSC palette changes to the outer terminal
+  local f="$1" esc=$'\033' bel=$'\007' seq="" i c
+  for i in $(seq 0 15); do
+    c=$(palette_color "$i" "$f"); [ -n "$c" ] && seq+="${esc}]4;${i};${c}${bel}"
+  done
+  c=$(conf_value foreground "$f");   [ -n "$c" ] && seq+="${esc}]10;${c}${bel}"
+  c=$(conf_value background "$f");   [ -n "$c" ] && seq+="${esc}]11;${c}${bel}"
+  c=$(conf_value cursor-color "$f"); [ -n "$c" ] && seq+="${esc}]12;${c}${bel}"
+  # Write straight to the outer terminal's tty (works from tmux popups too,
+  # where DCS passthrough is not forwarded). Each attached client gets it.
+  local tty wrote=0
+  while IFS= read -r tty; do
+    [ -w "$tty" ] && printf '%s' "$seq" > "$tty" 2>/dev/null && wrote=1
+  done < <(tmux list-clients -F '#{client_tty}' 2>/dev/null)
+  if [ "$wrote" = 1 ]; then
+    tmux refresh-client 2>/dev/null || true   # repaint with the new palette
+  else
+    printf '%s' "$seq" > /dev/tty 2>/dev/null || true
+  fi
+}
+
+apply() {
+  local name="$1" f="$THEMES_DIR/$1.conf"
+  [ -f "$f" ] || { echo "theme-switcher: unknown theme: $name" >&2; exit 1; }
+  ln -sf "$name.conf" "$CURRENT"
+  apply_live "$f"
+  echo "Theme set: $name (new Ghostty windows pick it up via themes/current.conf;"
+  echo "if the current window did not change, reload Ghostty with cmd+shift+,)"
+}
+
+case "${1:-}" in
+  --preview) preview "$2"; exit 0 ;;
+  --apply)   apply "$2";   exit 0 ;;
+esac
+
+current=$(basename "$(readlink "$CURRENT" 2>/dev/null || echo none)" .conf)
+choice=$(
+  find "$THEMES_DIR" -name '*.conf' ! -name 'current.conf' -exec basename {} .conf \; |
+    sort |
+    fzf --prompt="theme ($current)> " --no-multi \
+        --preview "$0 --preview {}" --preview-window=right,50%
+) || exit 0
+[ -n "$choice" ] && apply "$choice"
