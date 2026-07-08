@@ -234,3 +234,42 @@ gw() {
         cd "$(echo "$target" | awk '{print $1}')"
     fi
 }
+
+# try (tobi/try): date-stamped experiment dirs under ~/projects/tries.
+# Lazy-loaded: `try init` forks a process, so the real init runs on first use.
+if command -v try &>/dev/null; then
+    try() {
+        unset -f try
+        eval "$(SHELL=/bin/bash command try init ~/projects/tries)"
+        try "$@"
+    }
+fi
+
+# --- SSH port forwarding helpers ---
+# From basecamp/omarchy (default/bash/fns/ssh-port-forwarding), MIT.
+# Adapted for macOS: `lip` uses `pgrep -fl` (BSD pgrep has no -a).
+fip() {
+  (( $# < 2 )) && echo "Usage: fip <host> <port1> [port2] ..." && return 1
+  local host="$1"
+  shift
+  for port in "$@"; do
+    ssh -f -N -L "$port:localhost:$port" "$host" && echo "Forwarding localhost:$port -> $host:$port"
+  done
+}
+
+dip() {
+  (( $# == 0 )) && echo "Usage: dip <port1> [port2] ..." && return 1
+  for port in "$@"; do
+    pkill -f "ssh.*-L $port:localhost:$port" && echo "Stopped forwarding port $port" || echo "No forwarding on port $port"
+  done
+}
+
+lip() {
+  pgrep -fl "ssh.*-L [0-9]+:localhost:[0-9]+" || echo "No active forwards"
+}
+
+# --- Compression ---
+# From basecamp/omarchy (default/bash/fns/compression), MIT. Verbatim.
+compress() { tar -czf "${1%/}.tar.gz" "${1%/}"; }
+alias decompress="tar -xzf"
+

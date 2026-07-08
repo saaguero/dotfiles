@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# idem — "ide multi": run the `ide` layout once PER SUBDIRECTORY of the
+# current directory, one tmux window each (adapted from Omarchy's tdlm,
+# but driving our `ide` script instead of tdl).
+#
+# Usage:
+#   idem                 # one ide window (vim + claude cc + terminal) per subdir
+#   idem opencode        # same, with another agent (passed through to ide)
+#
+# The current window is reused for the first subdirectory; the session is
+# renamed after the parent directory. Windows are named by `ide` (dir name).
+set -euo pipefail
+
+PATH="$HOME/.local/bin:$PATH"
+AGENT_ARGS="$*"
+BASE_DIR="$PWD"
+
+if [ -z "${TMUX:-}" ]; then
+	echo "idem: must be run inside tmux" >&2
+	exit 1
+fi
+
+shopt -s nullglob
+dirs=()
+for d in "$BASE_DIR"/*/; do
+	dirs+=("${d%/}")
+done
+if [ ${#dirs[@]} -eq 0 ]; then
+	echo "idem: no subdirectories in $BASE_DIR" >&2
+	exit 1
+fi
+
+# Session named after the parent dir (dots/colons are invalid in tmux names)
+tmux rename-session "$(basename "$BASE_DIR" | tr '.:' '--')"
+
+first=true
+for dir in "${dirs[@]}"; do
+	if $first; then
+		first=false
+		# Reuse the current window/pane: cd there and hand over to ide.
+		# send-keys (instead of exec) keeps this loop alive to spawn the rest.
+		tmux send-keys -t "$TMUX_PANE" " cd '$dir' && ide $AGENT_ARGS" C-m
+	else
+		pane_id=$(tmux new-window -c "$dir" -P -F '#{pane_id}')
+		tmux send-keys -t "$pane_id" " ide $AGENT_ARGS" C-m
+	fi
+done
