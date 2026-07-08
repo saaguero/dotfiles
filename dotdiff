@@ -181,5 +181,5 @@ else
     echo -e "${BLUE}To sync your changes back to the repo, you can:${NC}"
     echo "  1. Copy changed files from system back to repo"
     echo "  2. Review and commit the changes"
-    echo "  3. Run dotenv to reinstall if needed"
+    echo "  3. Run dotsync to reinstall if needed"
 fi

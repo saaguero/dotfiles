@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+# inspired from https://github.com/ThePrimeagen/dev/blob/master/dev-env
+dry_run="0"
+
+if [ -z "$XDG_CONFIG_HOME" ]; then
+    echo "no xdg config home"
+    echo "using ~/.config" # useful in mac osx
+    XDG_CONFIG_HOME=$HOME/.config
+fi
+
+BASE_PATH=$DOTFILES
+
+# Safety guard: an empty/invalid $DOTFILES turns "$BASE_PATH/bin" into "/bin",
+# so update_files would copy ALL of /bin into ~/.local/bin -- broken arm64e
+# binaries that macOS SIGKILLs on exec (breaks `bash`, the VSCode terminal,
+# etc.). $DOTFILES is unset in non-login shells, so this is easy to trip.
+# Refuse to run unless BASE_PATH points at a real dotfiles checkout. (2026-07-08)
+if [ -z "$BASE_PATH" ] || [ ! -d "$BASE_PATH/dot" ] || [ ! -f "$BASE_PATH/dotsync" ]; then
+    echo "dotsync: \$DOTFILES is empty or not a dotfiles checkout (got: '${BASE_PATH:-<empty>}')." >&2
+    echo "Refusing to run so it can't copy /bin into ~/.local/bin. Set DOTFILES and retry." >&2
+    exit 1
+fi
+
+if [[ $1 == "--dry" ]]; then
+    dry_run="1"
+fi
+
+log() {
+    if [[ $dry_run == "1" ]]; then
+        echo "[DRY_RUN]: $1"
+    else
+        echo "$1"
+    fi
+}
+
+update_folders() {
+    log "copying over files from: $1"
+    pushd $1 &> /dev/null
+    (
+        configs=`find . -mindepth 1 -maxdepth 1 -type d`
+        for c in $configs; do
+            directory=${2%/}/${c#./}
+            # Mirror repo -> dest (a repo deletion is reflected), but NEVER wipe
+            # secret files that live ONLY in the destination and are gitignored
+            # here (e.g. ~/.config/tmux/openrouter.key). rsync --delete keeps
+            # excluded files, so those survive the sync. This replaces an
+            # `rm -rf $directory && cp -r`, which destroyed such files.
+            log "    syncing (mirror, keep secrets): rsync -a --delete ./${c#./}/ -> $directory/"
+            if [[ $dry_run == "0" ]]; then
+                mkdir -p "$directory"
+                rsync -a --delete \
+                    --exclude='*.key' \
+                    --exclude='secrets.env' \
+                    --exclude='.env' \
+                    --exclude='.env.*' \
+                    --exclude='plugins' \
+                    "./${c#./}/" "$directory/"
+            fi
+        done
+
+    )
+    popd &> /dev/null
+}
+
+update_files() {
+    log "copying over files from: $1"
+    log "    ensure target dir exists: mkdir -p $2"
+    if [[ $dry_run == "0" ]]; then
+        mkdir -p $2
+    fi
+
+    pushd $1 &> /dev/null
+    (
+        configs=`find . -mindepth 1 -maxdepth 1 -type f`
+        for c in $configs; do
+            file=${2%/}/${c#./}
+            log "    removing: rm -f $file"
+            if [[ $dry_run == "0" ]]; then
+                rm -f $file
+            fi
+
+            log "    copying: cp $c $file"
+            if [[ $dry_run == "0" ]]; then
+                cp $c $file
+            fi
+        done
+
+    )
+    popd &> /dev/null
+}
+
+copy() {
+    local src="$1" dst="$2"
+    # If the destination is a directory (or ends in /), the real target is a
+    # file INSIDE it -- never rm the directory itself (e.g. the Obsidian vault).
+    # Resolve to that file so we only ever rm -f / cp a single file.
+    if [[ "$dst" == */ || -d "$dst" ]]; then
+        dst="${dst%/}/$(basename "$src")"
+    fi
+    log "removing: rm -f $dst"
+    if [[ $dry_run == "0" ]]; then
+        rm -f "$dst"
+    fi
+    log "copying: $src to $dst"
+    if [[ $dry_run == "0" ]]; then
+        cp "$src" "$dst"
+    fi
+}
+
+log "base_path: $BASE_PATH"
+
+update_files $BASE_PATH/bin $HOME/.local/bin
+update_files $BASE_PATH/dot $HOME
+update_folders $BASE_PATH/config $XDG_CONFIG_HOME
+
+copy $BASE_PATH/vim/.vimrc $HOME/.vimrc
+copy $BASE_PATH/dotsync $HOME/.local/bin/dotsync
+
+copy $BASE_PATH/obsidian/.obsidian.vimrc $OBSIDIAN_VAULT/
+
+# handle personal repository if available (cloned independently, not a submodule)
+# NOTE: require PERSONAL_DIR non-empty first -- otherwise "$PERSONAL_DIR/bin" is
+# "/bin", [ -d /bin ] is true, and this copies ALL of /bin into ~/.local/bin
+# (the 2026-07-08 incident: broken arm64e copies that macOS SIGKILLs).
+if [ -n "$PERSONAL_DIR" ] && [ -d "$PERSONAL_DIR/bin" ]; then
+    update_files $PERSONAL_DIR/bin $HOME/.local/bin
+fi

@@ -4,3 +4,8 @@
 *.zip
 languagetool/ngrams
 languagetool/fastText
+# Secrets: never track API keys / secret files (e.g. config/tmux/openrouter.key)
+*.key
+secrets.env
+.env
+.env.*

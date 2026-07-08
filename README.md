@@ -7,9 +7,9 @@
 - If you are using Mac:
   - `~/dotfiles/brew-init` to install the packages.
   - `~/dotfiles/macos-init` to set up the macOS defaults.
-- Copy the dotfiles and configs with `~/dotfiles/dotenv`.
+- Copy the dotfiles and configs with `~/dotfiles/dotsync`.
 
-On any change, you need to re-run `dotenv` to apply the changes.
+On any change, you need to re-run `dotsync` to apply the changes.
 
 ## LanguageTool
 
