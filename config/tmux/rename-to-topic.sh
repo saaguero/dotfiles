@@ -29,18 +29,25 @@ OPENROUTER_MODEL="openrouter/free"
 
 # Set the WINDOW name of pane $1 to label $2. We track the name we set in the
 # window option @claude_named:
-#   - first time (no @claude_named): claim the window and name it;
-#   - afterwards: keep updating unless the user renamed manually -- the name
-#     differs from @claude_named AND automatic-rename is off (a manual Cmd+R
-#     rename turns it off; if it is ON, the mismatch is just tmux's automatic
-#     name after we reverted below, so the window can be re-claimed).
+#   - never claimed (no @claude_named): only take over a window tmux is still
+#     naming automatically -- a name set by the user or a script (Cmd+R, ide/
+#     idem, new-window -n) turns automatic-rename off, so keep hands off;
+#   - claimed: keep updating unless the user renamed manually since -- the name
+#     differs from @claude_named AND automatic-rename is off (if it is ON, the
+#     mismatch is just tmux's automatic name after we reverted below, so the
+#     window can be re-claimed).
+# NB: formats render the automatic-rename option as 1/0, not on/off.
 maybe_set_window_name() {
   local p="$1" nm="$2" auto cur named
   IFS='|' read -r auto cur <<EOF
 $(tmux display-message -p -t "$p" '#{automatic-rename}|#{window_name}' 2>/dev/null)
 EOF
   named="$(tmux show-option -wqv -t "$p" @claude_named 2>/dev/null)"
-  [ -n "$named" ] && [ "$cur" != "$named" ] && [ "$auto" != "1" ] && return 0   # formats render the option as 1/0
+  if [ -n "$named" ]; then
+    [ "$cur" != "$named" ] && [ "$auto" != "1" ] && return 0
+  else
+    [ "$auto" = "1" ] || return 0
+  fi
   tmux rename-window -t "$p" "$nm" 2>/dev/null
   tmux set-option -w -t "$p" @claude_named "$nm" 2>/dev/null
 }
