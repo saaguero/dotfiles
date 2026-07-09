@@ -6,7 +6,8 @@
 #     (pane-border-format) -- so several Claude panes in ONE window each show
 #     their own topic instead of fighting over the single window name;
 #   - if the pane is active, also sets the WINDOW name to that label (and an
-#     after-select-pane hook re-points the window name when you switch panes).
+#     after-select-pane hook re-points the window name when you switch panes;
+#     focusing a non-Claude pane hands the name back to automatic-rename).
 # A window you renamed yourself (Cmd+R) is never overridden.
 #
 # Backend: Claude Haiku (headless `claude -p`); on empty output (failure / rate
@@ -29,27 +30,40 @@ OPENROUTER_MODEL="openrouter/free"
 # Set the WINDOW name of pane $1 to label $2. We track the name we set in the
 # window option @claude_named:
 #   - first time (no @claude_named): claim the window and name it;
-#   - afterwards: keep updating only while the name is still ours -- a manual
-#     Cmd+R rename since then makes cur != @claude_named, so we back off for good.
-# (Based solely on @claude_named, not automatic-rename, so a window named by an
-# older version of this script -- no marker, automatic-rename already off -- still
-# gets adopted instead of looking like a manual rename.)
+#   - afterwards: keep updating unless the user renamed manually -- the name
+#     differs from @claude_named AND automatic-rename is off (a manual Cmd+R
+#     rename turns it off; if it is ON, the mismatch is just tmux's automatic
+#     name after we reverted below, so the window can be re-claimed).
 maybe_set_window_name() {
-  local p="$1" nm="$2" cur named
-  cur="$(tmux display-message -p -t "$p" '#{window_name}' 2>/dev/null)"
+  local p="$1" nm="$2" auto cur named
+  IFS='|' read -r auto cur <<EOF
+$(tmux display-message -p -t "$p" '#{automatic-rename}|#{window_name}' 2>/dev/null)
+EOF
   named="$(tmux show-option -wqv -t "$p" @claude_named 2>/dev/null)"
-  [ -n "$named" ] && [ "$cur" != "$named" ] && return 0
+  [ -n "$named" ] && [ "$cur" != "$named" ] && [ "$auto" != "1" ] && return 0   # formats render the option as 1/0
   tmux rename-window -t "$p" "$nm" 2>/dev/null
   tmux set-option -w -t "$p" @claude_named "$nm" 2>/dev/null
 }
 
 # after-select-pane: point the window name at the now-active pane's label.
+# If the focused pane is NOT a Claude one (no label), hand the name back to
+# tmux (automatic-rename) so it tracks the pane's command again (vim, bash...).
 if [ "${1:-}" = "--activate" ]; then
   ap="${2:-}"
   [ -n "$ap" ] || exit 0
   lbl="$(tmux show-option -pqv -t "$ap" @claude_topic 2>/dev/null)"
-  [ -n "$lbl" ] || exit 0
-  maybe_set_window_name "$ap" "$lbl"
+  if [ -n "$lbl" ]; then
+    maybe_set_window_name "$ap" "$lbl"
+    exit 0
+  fi
+  # Revert only while the name is still the one we set (respect manual renames).
+  # @claude_named stays set: with automatic-rename back on, maybe_set_window_name
+  # re-claims the window when a Claude pane gets focus again.
+  named="$(tmux show-option -wqv -t "$ap" @claude_named 2>/dev/null)"
+  [ -n "$named" ] || exit 0
+  cur="$(tmux display-message -p -t "$ap" '#{window_name}' 2>/dev/null)"
+  [ "$cur" = "$named" ] || exit 0
+  tmux set-option -w -t "$ap" -u automatic-rename 2>/dev/null
   exit 0
 fi
 
