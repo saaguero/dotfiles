@@ -3,7 +3,7 @@
 ## Installation
 
 - Clone repository to `~/dotfiles`.
-- Run `~/dotfiles/init` to clone the git submodules.
+- Run `~/dotfiles/init` to clone the external repos (e.g. [dotvim](https://github.com/saaguero/dotvim) into `~/dotvim`).
 - If you are using Mac:
   - `~/dotfiles/brew-init` to install the packages.
   - `~/dotfiles/macos-init` to set up the macOS defaults.

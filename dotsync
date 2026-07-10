@@ -113,7 +113,13 @@ update_files $BASE_PATH/bin $HOME/.local/bin
 update_files $BASE_PATH/dot $HOME
 update_folders $BASE_PATH/config $XDG_CONFIG_HOME
 
-copy $BASE_PATH/vim/.vimrc $HOME/.vimrc
+# vim config lives in its own repo, cloned independently (see ./init)
+DOTVIM_DIR="${DOTVIM_DIR:-$HOME/dotvim}"
+if [ -f "$DOTVIM_DIR/.vimrc" ]; then
+    copy $DOTVIM_DIR/.vimrc $HOME/.vimrc
+else
+    log "WARN: dotvim not found at $DOTVIM_DIR, skipping ~/.vimrc (run ./init to clone it)"
+fi
 copy $BASE_PATH/dotsync $HOME/.local/bin/dotsync
 
 copy $BASE_PATH/obsidian/.obsidian.vimrc $OBSIDIAN_VAULT/

@@ -144,10 +144,11 @@ fi
 
 echo
 echo -e "${BLUE}=== Checking vim configuration ===${NC}"
-if [ -f "$BASE_PATH/vim/.vimrc" ]; then
-    compare_file "$BASE_PATH/vim/.vimrc" "$HOME/.vimrc" "Vim configuration"
+DOTVIM_DIR="${DOTVIM_DIR:-$HOME/dotvim}"
+if [ -f "$DOTVIM_DIR/.vimrc" ]; then
+    compare_file "$DOTVIM_DIR/.vimrc" "$HOME/.vimrc" "Vim configuration"
 else
-    echo -e "${RED}ERROR:${NC} vim/.vimrc not found in repo"
+    echo -e "${YELLOW}WARNING:${NC} dotvim not found at $DOTVIM_DIR, skipping vim check (run ./init to clone it)"
 fi
 
 echo
@@ -160,14 +161,12 @@ fi
 
 echo
 echo -e "${BLUE}=== Checking personal files ===${NC}"
-if [ -d "$BASE_PATH/personal" ] && [ -f "$BASE_PATH/personal/.git" ]; then
-    if [ -d "$BASE_PATH/personal/bin" ]; then
-        while IFS= read -r repo_file; do
-            filename=$(basename "$repo_file")
-            system_file="$HOME/.local/bin/$filename"
-            compare_file "$repo_file" "$system_file" "Personal bin: $filename"
-        done < <(find "$BASE_PATH/personal/bin" -type f)
-    fi
+if [ -n "$PERSONAL_DIR" ] && [ -d "$PERSONAL_DIR/bin" ]; then
+    while IFS= read -r repo_file; do
+        filename=$(basename "$repo_file")
+        system_file="$HOME/.local/bin/$filename"
+        compare_file "$repo_file" "$system_file" "Personal bin: $filename"
+    done < <(find "$PERSONAL_DIR/bin" -type f)
 else
     echo "Personal repository not available or not initialized"
 fi

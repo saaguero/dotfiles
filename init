@@ -1,22 +1,25 @@
 #!/usr/bin/env bash
+# External repos are independent clones, not git submodules (simpler to maintain).
 
-echo "Initializing submodules"
-git submodule init
+DOTVIM_DIR="${DOTVIM_DIR:-$HOME/dotvim}"
 
-# Get a list of all submodule paths defined in .gitmodules
-SUBMODULE_PATHS=$(git config --file .gitmodules --get-regexp path | awk '{ print $2 }')
-
-if [ -z "$SUBMODULE_PATHS" ]; then
-	echo "No submodules found in .gitmodules"
-	exit 0
+if [ -d "$DOTVIM_DIR/.git" ]; then
+    echo "Updating dotvim at $DOTVIM_DIR"
+    # --ff-only never merges or rebases: if the local clone has diverged
+    # (e.g. work in progress), it fails loudly instead of touching anything
+    git -C "$DOTVIM_DIR" pull --ff-only || echo "WARN: could not fast-forward $DOTVIM_DIR (local changes?), update it manually."
+else
+    echo "Cloning dotvim into $DOTVIM_DIR"
+    git clone https://github.com/saaguero/dotvim.git "$DOTVIM_DIR"
 fi
 
-for path in $SUBMODULE_PATHS
-do
-	echo "Attempting update for: $path"
-	# Try to update the specific submodule.
-	# Use '||' to catch errors (like permission denied for private repos) and allow the script to continue.
-	GIT_TERMINAL_PROMPT=0 git submodule update --init --remote --merge -- "$path" || echo "WARN: Failed to update $path. Skipping (might be private or unreachable)."
-done
-
-echo "Finished attempting submodule updates"
+# The personal repo is private: cloning it is a deliberate manual act (not every
+# machine should have it). But if it IS here, this machine was opted in, so keep
+# it updated. GIT_TERMINAL_PROMPT=0 avoids hanging on hosts without credentials.
+PERSONAL_DIR="${PERSONAL_DIR:-$HOME/personal}"
+if [ -d "$PERSONAL_DIR/.git" ]; then
+    echo "Updating personal repo at $PERSONAL_DIR"
+    GIT_TERMINAL_PROMPT=0 git -C "$PERSONAL_DIR" pull --ff-only || echo "WARN: could not fast-forward $PERSONAL_DIR (no credentials or local changes?), update it manually."
+else
+    echo "NOTE: personal repo not found at $PERSONAL_DIR (clone it manually if you need it)"
+fi
