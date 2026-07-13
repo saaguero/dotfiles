@@ -174,13 +174,14 @@ trap 'rmdir "$LOCK" 2>/dev/null' EXIT
 tmux set-option -p -t "$pane" @claude_topic_try "$topic" 2>/dev/null
 tmux set-option -p -t "$pane" @claude_topic_try_ts "$now" 2>/dev/null
 
-prompt="Give ONLY a 1-2 word label for the main SUBJECT of this terminal-session topic: the specific thing it is about -- a proper noun, work, tool, project or concept. NOT the action: never answer with a generic verb like write/make/fix/debug/create/analyze (or their equivalents in any language). Pick the most recognizable noun; use 2 words only when they identify it better. Keep the topic's language. No punctuation, no quotes, no explanation.
+prompt="Give ONLY a 2-word label for the main SUBJECT of this terminal-session topic: the specific thing it is about -- a proper noun, work, tool, project or concept. Two words is the target; answer with ONE word only when it alone already identifies the subject (a proper name like Kafka or Hamlet); NEVER three or more. NOT the action: never answer with a generic verb like write/make/fix/debug/create/analyze (or their equivalents in any language). NOT the setting: never answer with a deployment-environment or stage word like staging/production/dev/test/QA/local/environment (or their equivalents in any language) -- those say WHERE the work happens, not WHAT it is about; skip them and pick the project/system they qualify. Prefer the most recognizable, distinctive nouns. Keep the topic's language. No punctuation, no quotes, no explanation.
 
-Examples (name the subject, not the verb):
-Topic: write about a novel -> novel
-Topic: fix the login bug -> login
-Topic: migrate the database to a new host -> database
+Examples (two words naming the subject, not the verb or the environment):
+Topic: fix the login bug -> login bug
+Topic: migrate the database to a new host -> database migration
 Topic: set up the CI pipeline -> CI pipeline
+Topic: deploy the telemetry beacon to staging and production -> telemetry beacon
+Topic: write an essay about Hamlet -> Hamlet
 
 Topic: $topic"
 
@@ -194,6 +195,17 @@ name="$(printf '%s' "$raw" \
 # Enforce the 1-2 word contract even if the model rambles; keep it bar-sized.
 name="$(printf '%s' "$name" | awk '{ if (NF > 2) print $1, $2; else print }')"
 [ "${#name}" -le 25 ] || exit 0
+
+# Enforce the no-environment contract too: a label made ONLY of deployment-stage
+# words (any mix/case, split on space or /) says where, not what -- discard it.
+# awk, NOT grep: `grep` here can be ugrep (brew shim on PATH, tmux hooks inherit
+# it) whose -q ignores -v -- same family of trap as the GNU stat note above.
+printf '%s' "$name" | tr ' /' '\n\n' | awk '
+  { w = tolower($0) }
+  w != "" &&
+  w !~ /^(staging|production|prod|dev|development|test|testing|qa|local|env|environment|entorno)$/ &&
+  w !~ /^producci..?n$/ { found = 1 }
+  END { exit found ? 0 : 1 }' || exit 0
 
 # Store the per-pane label -> the pane border shows it (pane-border-format).
 tmux set-option -p -t "$pane" @claude_topic "$name" 2>/dev/null
