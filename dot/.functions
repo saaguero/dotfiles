@@ -235,12 +235,12 @@ gw() {
     fi
 }
 
-# try (tobi/try): date-stamped experiment dirs under ~/projects/tries.
+# try (tobi/try): date-stamped experiment dirs under ~/tries.
 # Lazy-loaded: `try init` forks a process, so the real init runs on first use.
 if command -v try &>/dev/null; then
     try() {
         unset -f try
-        eval "$(SHELL=/bin/bash command try init ~/projects/tries)"
+        eval "$(SHELL=/bin/bash command try init ~/tries)"
         try "$@"
     }
 fi

@@ -16,6 +16,7 @@ search_dirs=(
     "$HOME/temp/investigation:1"
     "$HOME/personal:1"
     "$HOME/projects:1"
+    "$HOME/tries:1"
     "$HOME/Documents/zotero:2"
     "$HOME/Documents/vault:2"
 )
