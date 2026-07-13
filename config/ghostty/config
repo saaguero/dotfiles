@@ -56,6 +56,14 @@ keybind = cmd+r=esc:q,
 # Sends prefix+B (not U) because TPM uses prefix+U for plugin updates.
 keybind = cmd+u=esc:qB
 
+# Cycle through the Claude Code panes across all sessions (prefix+u / prefix+v;
+# cmd+shift+up/down is taken by session prev/next)
+keybind = cmd+up=esc:qu
+keybind = cmd+down=esc:qv
+
+# fzf picker over the active Claude conversations (prefix+P, live pane preview)
+keybind = cmd+p=esc:qP
+
 # Sessions
 keybind = cmd+n=esc:qN
 keybind = cmd+shift+n=esc:qM
