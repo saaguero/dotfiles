@@ -142,13 +142,10 @@ case "${1:-}" in
     ;;
 esac
 
-display="$(build_display)"
-if [ -z "$display" ]; then
-  tmux display-message "No agent sessions"
-  exit 0
-fi
-
-sel="$(printf '%s\n' "$display" | fzf \
+# Open even with zero live agents: fzf just shows an empty (0/0) list and
+# ctrl-r still switches to the resume view of past conversations. build_display
+# is piped directly so an empty result yields no lines (not one blank entry).
+sel="$(build_display | fzf \
   --ansi --delimiter '\t' --with-nth 2 --track --id-nth 1 \
   --prompt 'agents> ' \
   --header "$HEADER_LIVE" \
