@@ -9,7 +9,7 @@ if [[ $# -eq 1 ]]; then
     key=""
 else
     # candidate dirs come from the shared lister; Enter just opens the picked dir.
-    # ctrl-g toggles "only dirs with a CLAUDE.md"; ctrl-s toggles "study" dirs
+    # ctrl-g toggles "only dirs with a CLAUDE.md or AGENTS.md"; ctrl-s toggles "study" dirs
     # (zotero materials + Obsidian vault). Neither runs Claude — that's `ccd`.
     # ctrl-o accepts the selection AND opens it with the `ide` layout
     # (vim + agent + terminal, see ~/.local/bin/ide).
@@ -17,8 +17,8 @@ else
     out=$("$lister" | fzf \
         --expect 'ctrl-o' \
         --prompt 'all> ' \
-        --header 'ctrl-g: only CLAUDE.md   ctrl-s: study   ctrl-o: open as IDE' \
-        --bind "ctrl-g:transform:[ \"\$FZF_PROMPT\" = 'claude> ' ] && echo 'change-prompt(all> )+reload($lister)' || echo 'change-prompt(claude> )+reload($lister --claude)'" \
+        --header 'ctrl-g: only CLAUDE.md/AGENTS.md   ctrl-s: study   ctrl-o: open as IDE' \
+        --bind "ctrl-g:transform:[ \"\$FZF_PROMPT\" = 'agents> ' ] && echo 'change-prompt(all> )+reload($lister)' || echo 'change-prompt(agents> )+reload($lister --claude)'" \
         --bind "ctrl-s:transform:[ \"\$FZF_PROMPT\" = 'study> ' ] && echo 'change-prompt(all> )+reload($lister)' || echo 'change-prompt(study> )+reload($lister --study)'")
     key=$(head -n1 <<< "$out")
     selected=$(sed -n '2p' <<< "$out")

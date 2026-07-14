@@ -4,7 +4,7 @@
 # tmux-sessionizer, tmux-windowizer and their in-fzf toggles.
 #
 #   (no args)   all candidate dirs
-#   --claude    only dirs that contain a CLAUDE.md
+#   --claude    only dirs that contain a CLAUDE.md or AGENTS.md
 #   --study     study dirs: zotero materials + the Obsidian vault
 
 # path:depth — depth is find's -maxdepth; bump it for roots with nested repos.
@@ -38,7 +38,7 @@ emit() {
 case $1 in
     --claude)
         emit "${search_dirs[@]}" | while IFS= read -r d; do
-            [[ -e "$d/CLAUDE.md" ]] && printf '%s\n' "$d"
+            { [[ -e "$d/CLAUDE.md" ]] || [[ -e "$d/AGENTS.md" ]]; } && printf '%s\n' "$d"
         done
         ;;
     --study)
