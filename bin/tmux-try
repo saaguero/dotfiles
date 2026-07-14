@@ -2,17 +2,20 @@
 # tmux-try: run the `try` TUI (ephemeral workspace manager) in a tmux popup.
 # Picking an existing try (or typing a new name + Enter / Ctrl-T) resolves to a
 # directory; the session naming/create/switch logic is delegated to
-# tmux-sessionizer so both entry points (prefix+y and C-f) stay consistent.
-# Bound to prefix+y (Cmd+Y via Ghostty) in tmux.conf.
+# tmux-sessionizer so both entry points (prefix+o and C-f) stay consistent.
+# Bound to prefix+o (Cmd+O via Ghostty) in tmux.conf.
 
 set -u
 
-TRIES_PATH="${TRY_PATH:-$HOME/tries}"
+# Fork of tobi/try (saaguero/try) with multi-path support. Honors $TRY_PATHS
+# (colon-separated) then $TRY_PATH, defaulting to ~/tries.
+TRY_SCRIPT="$HOME/projects/try/try.rb"
+TRIES_PATHS="${TRY_PATHS:-${TRY_PATH:-$HOME/tries}}"
 
 # `try exec` renders its TUI on stderr (the popup tty) and prints a shell
 # script on stdout; when a try is picked/created the script ends in
 # `cd '<dir>'` (preceded by mkdir/touch). Cancel (Esc) exits nonzero.
-out=$(command try exec --path "$TRIES_PATH" "$@") || exit 0
+out=$(/usr/bin/env ruby "$TRY_SCRIPT" exec --path "$TRIES_PATHS" "$@") || exit 0
 
 # Only act on results that navigate somewhere (create/select); rename or
 # delete operations emit scripts without a cd — run them and stop there.
@@ -26,9 +29,14 @@ fi
 # recency sort) and the final cd; pwd then gives us the unquoted dir.
 dir=$({ eval "$out" >/dev/null 2>&1; pwd; })
 
-case $dir in
-    "$TRIES_PATH"/*) ;;
-    *) exit 0 ;;
-esac
+# Accept the picked dir only if it lives under one of the configured tries
+# paths (TRIES_PATHS may be a colon-separated list in the multi-path fork).
+inside=0
+_ifs=$IFS; IFS=:
+for _tp in $TRIES_PATHS; do
+    case $dir in "$_tp"/*) inside=1; break ;; esac
+done
+IFS=$_ifs
+[ "$inside" -eq 1 ] || exit 0
 
 exec "$HOME/.local/bin/tmux-sessionizer" "$dir"

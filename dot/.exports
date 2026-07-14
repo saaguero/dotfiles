@@ -97,3 +97,6 @@ _lazy_virtualenvs_complete() {
 	COMPREPLY=($(compgen -W "${envs[*]}" -- "${COMP_WORDS[COMP_CWORD]}"))
 }
 complete -F _lazy_virtualenvs_complete workon rmvirtualenv cdvirtualenv cdsitepackages
+
+# try (saaguero/try fork): unified view over personal + work tries.
+export TRY_PATHS="$HOME/tries:$HOME/work/tries"

@@ -164,10 +164,10 @@ aipr() {
 # Find and cd into a directory using fzf, excluding hidden directories
 dn() {
   local dir
-  # -mindepth 1: Excludes the current directory '.' from the list
-  # -not -path '*/\.*': Excludes any directory starting with a dot (and its subdirectories)
-  # sed 's|^\./||': Strips the leading './' from the paths for a cleaner fzf UI
-  dir=$(find . -mindepth 1 -type d -not -path '*/\.*' 2>/dev/null | sed 's|^\./||' | fzf --query="$1")
+  # fd skips hidden and gitignored dirs WITHOUT descending into them (unlike
+  # find's -not -path, which still crawls .git/.terraform/node_modules).
+  # --select-1: `dn foo` jumps straight in when the query has a single match.
+  dir=$(fd --type d --strip-cwd-prefix | fzf --query="$1" --select-1)
 
   [ -n "$dir" ] && cd "$dir"
 }
@@ -235,12 +235,12 @@ gw() {
     fi
 }
 
-# try (tobi/try): date-stamped experiment dirs under ~/tries.
-# Lazy-loaded: `try init` forks a process, so the real init runs on first use.
-if command -v try &>/dev/null; then
+# Lazy-loaded: the real init runs on first use. Respects
+# $TRY_PATHS (colon-separated) then $TRY_PATH at runtime, defaulting to ~/tries.
+if [ -f "$HOME/projects/try/try.rb" ]; then
     try() {
         unset -f try
-        eval "$(SHELL=/bin/bash command try init ~/tries)"
+        eval "$(SHELL=/bin/bash /usr/bin/env ruby "$HOME/projects/try/try.rb" --path "$HOME/tries" init)"
         try "$@"
     }
 fi
