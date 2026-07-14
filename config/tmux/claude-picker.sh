@@ -153,7 +153,7 @@ sel="$(printf '%s\n' "$display" | fzf \
   --prompt 'agents> ' \
   --header "$HEADER_LIVE" \
   --preview "$PREVIEW {1} {3}" \
-  --preview-window 'right,60%,border-left,follow,wrap,~3' \
+  --preview-window 'right,40%,border-left,follow,wrap,~3' \
   --bind 'ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down' \
   --bind "every(${REFRESH_SECS}):transform:$0 --auto-refresh" \
   --bind "ctrl-r:transform:$0 --toggle-mode" \

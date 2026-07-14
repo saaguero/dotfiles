@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# tmux-try: run the `try` TUI (ephemeral workspace manager) in a tmux popup.
+# Picking an existing try (or typing a new name + Enter / Ctrl-T) resolves to a
+# directory; the session naming/create/switch logic is delegated to
+# tmux-sessionizer so both entry points (prefix+y and C-f) stay consistent.
+# Bound to prefix+y (Cmd+Y via Ghostty) in tmux.conf.
+
+set -u
+
+TRIES_PATH="${TRY_PATH:-$HOME/tries}"
+
+# `try exec` renders its TUI on stderr (the popup tty) and prints a shell
+# script on stdout; when a try is picked/created the script ends in
+# `cd '<dir>'` (preceded by mkdir/touch). Cancel (Esc) exits nonzero.
+out=$(command try exec --path "$TRIES_PATH" "$@") || exit 0
+
+# Only act on results that navigate somewhere (create/select); rename or
+# delete operations emit scripts without a cd — run them and stop there.
+# Note: try emits `&& \` continuations, so the cd line may be indented.
+if ! printf '%s\n' "$out" | grep -qE '^[[:space:]]*cd '; then
+    (eval "$out" >/dev/null 2>&1)
+    exit 0
+fi
+
+# eval performs the side effects (mkdir for a new try, touch to bump the
+# recency sort) and the final cd; pwd then gives us the unquoted dir.
+dir=$({ eval "$out" >/dev/null 2>&1; pwd; })
+
+case $dir in
+    "$TRIES_PATH"/*) ;;
+    *) exit 0 ;;
+esac
+
+exec "$HOME/.local/bin/tmux-sessionizer" "$dir"

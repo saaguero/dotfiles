@@ -42,6 +42,7 @@ keybind = cmd+digit_9=esc:q9
 # Panes
 keybind = cmd+d=esc:q%
 keybind = cmd+shift+d=esc:q-
+# try popup: pick/create an ephemeral ~/tries dir and open a session there
 keybind = cmd+o=esc:qo
 
 # zoom in both cmd+enter and cmd+z (muscle memory)
