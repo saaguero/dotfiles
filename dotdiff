@@ -26,6 +26,16 @@ echo
 # Global variable to track differences
 GLOBAL_HAS_DIFFERENCES=0
 
+# Return 0 (true) if git would ignore the given path within the given repo.
+# Consults both the repo's .gitignore and the global core.excludesfile, so
+# secrets (*.key) and compiled artifacts (*.pyc) never show up as diffs.
+is_git_ignored() {
+    local repo_root="$1"
+    local path="$2"
+    [ -z "$repo_root" ] && return 1
+    git -C "$repo_root" check-ignore -q "$path" 2>/dev/null
+}
+
 # Function to compare files and show diff
 compare_file() {
     local repo_file="$1"
@@ -101,6 +111,7 @@ compare_directory() {
     
     # Find all files in repo directory and compare (exclude .git directories, tmux/plugins, and karabiner/automatic_backups)
     while IFS= read -r repo_file; do
+        is_git_ignored "$BASE_PATH" "$repo_file" && continue
         relative_path="${repo_file#$repo_dir/}"
         system_file="$system_dir/$relative_path"
         compare_file "$repo_file" "$system_file" "$relative_path"
@@ -111,6 +122,7 @@ compare_directory() {
         relative_path="${system_file#$system_dir/}"
         repo_file="$repo_dir/$relative_path"
         if [ ! -f "$repo_file" ]; then
+            is_git_ignored "$BASE_PATH" "$repo_file" && continue
             echo -e "${YELLOW}EXTRA:${NC} File exists in system but not in repo: $relative_path"
             echo -e "  System: $system_file"
             echo
@@ -122,6 +134,7 @@ compare_directory() {
 echo -e "${BLUE}=== Checking dot files (home directory) ===${NC}"
 if [ -d "$BASE_PATH/dot" ]; then
     while IFS= read -r repo_file; do
+        is_git_ignored "$BASE_PATH" "$repo_file" && continue
         filename=$(basename "$repo_file")
         system_file="$HOME/$filename"
         compare_file "$repo_file" "$system_file" "Home file: $filename"
@@ -163,6 +176,7 @@ echo
 echo -e "${BLUE}=== Checking personal files ===${NC}"
 if [ -n "$PERSONAL_DIR" ] && [ -d "$PERSONAL_DIR/bin" ]; then
     while IFS= read -r repo_file; do
+        is_git_ignored "$PERSONAL_DIR" "$repo_file" && continue
         filename=$(basename "$repo_file")
         system_file="$HOME/.local/bin/$filename"
         compare_file "$repo_file" "$system_file" "Personal bin: $filename"
