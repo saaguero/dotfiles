@@ -13,7 +13,7 @@ alias assume=". assume"
 # https://github.com/cykerway/complete-alias
 complete -F _complete_alias "${!BASH_ALIASES[@]}"
 
-# 
+#
 # Aliases from here won't be autocompleted, useful if you are having issues with complete_alias
 #
 
@@ -73,3 +73,4 @@ alias cl="clear"
 # alias cc="ANTHROPIC_MODEL=claude-opus-4-6[1m] claude --dangerously-skip-permissions"
 alias cc="claude --dangerously-skip-permissions"
 alias agents="claude agents"
+alias oc="opencode"
