@@ -14,3 +14,9 @@ Thumbs.db
 .Trashes
 
 **/.claude/settings.local.json
+
+# Claude Code per-project working state (see ~/.claude/CLAUDE.md memory protocol)
+.agent/
+
+# Project-local agent skills vendored by "npx skills" (never commit)
+.agents/
