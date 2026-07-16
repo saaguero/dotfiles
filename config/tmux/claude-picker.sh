@@ -7,9 +7,10 @@
 #            Line: "● topic   session · agent" (green=working, yellow=input,
 #            dim=idle). Enter jumps to the pane. Auto-refreshes.
 #   resume>  every past Claude Code conversation (~/.claude/projects JSONLs),
-#            newest first, minus the ones currently live. Enter opens a NEW
-#            tmux session in the conversation's cwd resuming it with
-#            `claude --resume <id>` in yolo mode.
+#            newest first, minus the ones currently live. Enter resumes it with
+#            `claude --resume <id>` in yolo mode: a NEW WINDOW in the session
+#            already rooted at the conversation's cwd if one exists, otherwise a
+#            NEW tmux session in that cwd.
 #
 # The hidden first field disambiguates what Enter got: a %pane_id -> jump,
 # a session uuid -> resume. claude-preview.sh branches on the same value.
@@ -172,20 +173,46 @@ EOF2
     tmux select-pane -t "$key" 2>/dev/null
     ;;
   *)
-    # Past conversation -> resume it in a NEW tmux session (yolo mode).
+    # Past conversation -> resume it in yolo mode. If a tmux session is already
+    # rooted at this cwd, open a NEW WINDOW in it instead of spawning a second
+    # session with a "-2" suffix; only mint a fresh session when no existing
+    # one shares the path. Match on #{session_path} (the dir the session was
+    # started in), not the name -- two projects with the same basename should
+    # stay separate sessions.
     [ -d "$cwd" ] || cwd="$HOME"
-    name="${cwd##*/}"; name="${name//[.: ]/-}"; [ -n "$name" ] || name="resume"
-    base="$name"; n=2
-    while tmux has-session -t "=$name" 2>/dev/null; do
-      name="$base-$n"; n=$((n + 1))
-    done
-    tmux new-session -d -s "$name" -c "$cwd" \
-      "claude --dangerously-skip-permissions --resume $key" 2>/dev/null
-    sleep 0.4
-    if tmux has-session -t "=$name" 2>/dev/null; then
-      tmux switch-client -t "=$name" 2>/dev/null
+    existing=""
+    while IFS=$'\t' read -r spath sname; do
+      [ "$spath" = "$cwd" ] || continue
+      existing="$sname"; break
+    done < <(tmux list-sessions -F '#{session_path}'$'\t''#{session_name}' 2>/dev/null)
+
+    if [ -n "$existing" ]; then
+      # Reuse the matching session: new window there resuming the conversation.
+      win="$(tmux new-window -d -t "=$existing" -c "$cwd" -P -F '#{window_id}' \
+        "claude --dangerously-skip-permissions --resume $key" 2>/dev/null)"
+      sleep 0.4
+      if [ -n "$win" ] && \
+         tmux list-windows -t "=$existing" -F '#{window_id}' 2>/dev/null | grep -qxF "$win"; then
+        tmux switch-client -t "=$existing" 2>/dev/null
+        tmux select-window -t "$win" 2>/dev/null
+      else
+        tmux display-message "resume failed: claude exited immediately ($key)"
+      fi
     else
-      tmux display-message "resume failed: claude exited immediately ($key)"
+      # No session at this path yet -> mint a fresh one.
+      name="${cwd##*/}"; name="${name//[.: ]/-}"; [ -n "$name" ] || name="resume"
+      base="$name"; n=2
+      while tmux has-session -t "=$name" 2>/dev/null; do
+        name="$base-$n"; n=$((n + 1))
+      done
+      tmux new-session -d -s "$name" -c "$cwd" \
+        "claude --dangerously-skip-permissions --resume $key" 2>/dev/null
+      sleep 0.4
+      if tmux has-session -t "=$name" 2>/dev/null; then
+        tmux switch-client -t "=$name" 2>/dev/null
+      else
+        tmux display-message "resume failed: claude exited immediately ($key)"
+      fi
     fi
     ;;
 esac
