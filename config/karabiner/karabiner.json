@@ -8,6 +8,81 @@
                     "basic.to_if_held_down_threshold_milliseconds": 150
                 },
                 "rules": [
+                {
+                    "description": "Streaming mode: swallow super-key app launchers when streaming=1 (s/w/c/z/b/5/e)",
+                    "manipulators": [
+                            {
+                                "conditions": [{ "type": "variable_if", "name": "streaming", "value": 1 }],
+                                "description": "streaming: swallow super+s (Slack)",
+                                "from": {
+                                    "key_code": "s",
+                                    "modifiers": { "mandatory": ["command", "control", "option", "shift"], "optional": ["any"] }
+                                },
+                                "to": [{ "key_code": "vk_none" }],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [{ "type": "variable_if", "name": "streaming", "value": 1 }],
+                                "description": "streaming: swallow super+w (WhatsApp)",
+                                "from": {
+                                    "key_code": "w",
+                                    "modifiers": { "mandatory": ["command", "control", "option", "shift"], "optional": ["any"] }
+                                },
+                                "to": [{ "key_code": "vk_none" }],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [{ "type": "variable_if", "name": "streaming", "value": 1 }],
+                                "description": "streaming: swallow super+c (Calendar)",
+                                "from": {
+                                    "key_code": "c",
+                                    "modifiers": { "mandatory": ["command", "control", "option", "shift"], "optional": ["any"] }
+                                },
+                                "to": [{ "key_code": "vk_none" }],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [{ "type": "variable_if", "name": "streaming", "value": 1 }],
+                                "description": "streaming: swallow super+z (Zotero)",
+                                "from": {
+                                    "key_code": "z",
+                                    "modifiers": { "mandatory": ["command", "control", "option", "shift"], "optional": ["any"] }
+                                },
+                                "to": [{ "key_code": "vk_none" }],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [{ "type": "variable_if", "name": "streaming", "value": 1 }],
+                                "description": "streaming: swallow super+b (Bruno)",
+                                "from": {
+                                    "key_code": "b",
+                                    "modifiers": { "mandatory": ["command", "control", "option", "shift"], "optional": ["any"] }
+                                },
+                                "to": [{ "key_code": "vk_none" }],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [{ "type": "variable_if", "name": "streaming", "value": 1 }],
+                                "description": "streaming: swallow super+5 (Zoom)",
+                                "from": {
+                                    "key_code": "5",
+                                    "modifiers": { "mandatory": ["command", "control", "option", "shift"], "optional": ["any"] }
+                                },
+                                "to": [{ "key_code": "vk_none" }],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [{ "type": "variable_if", "name": "streaming", "value": 1 }],
+                                "description": "streaming: swallow super+e (Obsidian)",
+                                "from": {
+                                    "key_code": "e",
+                                    "modifiers": { "mandatory": ["command", "control", "option", "shift"], "optional": ["any"] }
+                                },
+                                "to": [{ "key_code": "vk_none" }],
+                                "type": "basic"
+                            }
+                    ]
+                },
                     {
                         "description": "Disable cmd-m (minimize), cmd-h (hide)",
                         "manipulators": [
