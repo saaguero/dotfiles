@@ -49,8 +49,10 @@ keybind = cmd+o=esc:qo
 keybind = cmd+enter=esc:qz
 keybind = cmd+z=esc:qz
 
+# Sessionizer popup (same as ctrl+f: sends a literal Ctrl-F, caught by tmux's root C-f bind)
+keybind = cmd+f=text:\x06
 # Search scrollback / rename window
-keybind = cmd+f=esc:qF
+keybind = cmd+shift+f=esc:qF
 keybind = cmd+r=esc:q,
 
 # Jump to the window/session that alerted (something finished, e.g. Claude).
