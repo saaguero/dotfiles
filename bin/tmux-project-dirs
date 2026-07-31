@@ -6,6 +6,15 @@
 #   (no args)   all candidate dirs
 #   --claude    only dirs that contain a CLAUDE.md or AGENTS.md
 #   --study     study dirs: zotero materials + the Obsidian vault
+#   --try               ephemeral try dirs (roots from $TRY_PATHS / $TRY_PATH)
+#   --try-root          print the first tries root
+#   --try-create NAME   synthetic "create: <root>/<name>" rows, one per tries root
+#   --try-list          --try + --try-create for $FZF_QUERY — what the pickers
+#                       reload on every keystroke in try mode. Reads the query
+#                       from the environment (fzf exports it to reload commands)
+#                       because a {q} placeholder inside a transform gets
+#                       substituted shell-quoted INTO the quoted action string,
+#                       breaking on queries with spaces
 
 # path:depth — depth is find's -maxdepth; bump it for roots with nested repos.
 search_dirs=(
@@ -27,6 +36,16 @@ study_dirs=(
     "$HOME/Documents/vault:2"
 )
 
+# tries roots for --try: honor $TRY_PATHS (colon-separated) then $TRY_PATH,
+# defaulting to ~/tries. tmux popups run non-login shells (no ~/.exports) and
+# update-environment may have removed TRY_PATHS from the session env, so pull
+# it from ~/.exports in an isolated subshell (avoids leaking its PATH/function
+# side effects into this script).
+if [[ -z "${TRY_PATHS:-}" && -z "${TRY_PATH:-}" && -r "$HOME/.exports" ]]; then
+    TRY_PATHS=$(. "$HOME/.exports" >/dev/null 2>&1; printf '%s' "${TRY_PATHS:-}")
+fi
+IFS=: read -ra try_roots <<< "${TRY_PATHS:-${TRY_PATH:-$HOME/tries}}"
+
 # emit the dirs for a list of "path:depth" entries (ignores hidden files/folders)
 emit() {
     local entry
@@ -43,6 +62,29 @@ case $1 in
         ;;
     --study)
         emit "${study_dirs[@]}"
+        ;;
+    --try)
+        try_dirs=()
+        for root in "${try_roots[@]}"; do try_dirs+=("$root:1"); done
+        emit "${try_dirs[@]}"
+        ;;
+    --try-root)
+        printf '%s\n' "${try_roots[0]}"
+        ;;
+    --try-create)
+        # sanitize the same way the dir will be created, so display == truth
+        # (spaces to dashes, trim stray dashes at the edges)
+        name=$(tr -s ' ' '-' <<< "$2" | sed 's/^-*//; s/-*$//')
+        [[ -n $name ]] || exit 0
+        for root in "${try_roots[@]}"; do
+            # never offer to create what already exists there
+            [[ -e "$root/$name" ]] && continue
+            printf 'create: %s/%s\n' "$root" "$name"
+        done
+        ;;
+    --try-list)
+        "$0" --try
+        "$0" --try-create "${FZF_QUERY:-}"
         ;;
     *)
         emit "${search_dirs[@]}"

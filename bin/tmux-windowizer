@@ -11,17 +11,35 @@ else
     # candidate dirs come from the shared lister; Enter just opens the picked dir.
     # ctrl-g toggles "only dirs with a CLAUDE.md or AGENTS.md"; ctrl-s toggles "study" dirs
     # (zotero materials + Obsidian vault). Neither runs Claude — that's `ccd`.
+    # ctrl-t toggles "tries" (ephemeral dirs under $TRY_PATHS). In that mode
+    # every query change reloads "real tries + one create: <root>/<query> row
+    # per tries root (skipping roots where it already exists)" in a single pass
+    # (no zero-event tricks: those race with fast typing and leave stale rows).
+    # Sorting is DISABLED while in try mode so the list keeps input order —
+    # real dirs always navigate before the create rows (score-based ranking
+    # could put a create row above real matches). fzf only has toggle-sort, so
+    # every transition in or out of try> must toggle it exactly once — that is
+    # why ctrl-g/ctrl-s special-case leaving try mode.
     # ctrl-o accepts the selection AND opens it with the `ide` layout
     # (vim + agent + terminal, see ~/.local/bin/ide).
     lister="$(dirname "$0")/tmux-project-dirs"
+    try_reload="reload-sync($lister --try-list)"
     out=$("$lister" | fzf \
         --expect 'ctrl-o' \
         --prompt 'all> ' \
-        --header 'ctrl-g: only CLAUDE.md/AGENTS.md   ctrl-s: study   ctrl-o: open as IDE' \
-        --bind "ctrl-g:transform:[ \"\$FZF_PROMPT\" = 'agents> ' ] && echo 'change-prompt(all> )+reload($lister)' || echo 'change-prompt(agents> )+reload($lister --claude)'" \
-        --bind "ctrl-s:transform:[ \"\$FZF_PROMPT\" = 'study> ' ] && echo 'change-prompt(all> )+reload($lister)' || echo 'change-prompt(study> )+reload($lister --study)'")
+        --header 'ctrl-g: only CLAUDE.md/AGENTS.md   ctrl-s: study   ctrl-t: tries   ctrl-o: open as IDE' \
+        --bind "ctrl-g:transform:if [ \"\$FZF_PROMPT\" = 'agents> ' ]; then echo 'change-prompt(all> )+reload($lister)'; elif [ \"\$FZF_PROMPT\" = 'try> ' ]; then echo 'change-prompt(agents> )+reload($lister --claude)+toggle-sort'; else echo 'change-prompt(agents> )+reload($lister --claude)'; fi" \
+        --bind "ctrl-s:transform:if [ \"\$FZF_PROMPT\" = 'study> ' ]; then echo 'change-prompt(all> )+reload($lister)'; elif [ \"\$FZF_PROMPT\" = 'try> ' ]; then echo 'change-prompt(study> )+reload($lister --study)+toggle-sort'; else echo 'change-prompt(study> )+reload($lister --study)'; fi" \
+        --bind "ctrl-t:transform:[ \"\$FZF_PROMPT\" = 'try> ' ] && echo 'change-prompt(all> )+reload($lister)+toggle-sort' || echo 'change-prompt(try> )+$try_reload+toggle-sort'" \
+        --bind "change:transform:[ \"\$FZF_PROMPT\" = 'try> ' ] && echo '$try_reload' || echo ignore")
     key=$(head -n1 <<< "$out")
     selected=$(sed -n '2p' <<< "$out")
+
+    # a synthetic "create: <path>" row was picked: make the dir real
+    if [[ $selected == 'create: '* ]]; then
+        selected="${selected#create: }"
+        mkdir -p "$selected"
+    fi
 fi
 
 if [[ -z $selected ]]; then
