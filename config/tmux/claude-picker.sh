@@ -146,8 +146,14 @@ esac
 # Open even with zero live agents: fzf just shows an empty (0/0) list and
 # ctrl-r still switches to the resume view of past conversations. build_display
 # is piped directly so an empty result yields no lines (not one blank entry).
+# --no-sort: keep input order (chronological in resume mode) even while a
+# query is typed -- by default fzf re-ranks matches by score, which shuffled
+# 21d entries above 4d ones. --exact to match: fuzzy matching over full lines
+# (title + project + age) makes nearly everything a match, so filtering by
+# substring is what you actually want ('-prefix a term to go fuzzy).
 sel="$(build_display | fzf \
   --ansi --delimiter '\t' --with-nth 2 --track --id-nth 1 \
+  --no-sort --exact \
   --prompt 'agents> ' \
   --header "$HEADER_LIVE" \
   --preview "$PREVIEW {1} {3}" \
