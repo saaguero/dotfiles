@@ -69,6 +69,10 @@ defaults write com.apple.dock mru-spaces -bool false
 # Auto-hide the menu bar
 defaults write NSGlobalDomain _HIHideMenuBar -bool true
 
+# No margins around tiled windows (macOS 15+; default ON leaves a gap between
+# maximized/tiled windows and the screen edges)
+defaults write com.apple.WindowManager EnableTiledWindowMargins -bool false
+
 # No icons on the Desktop (classic Finder toggle + its Sonoma-era counterpart)
 defaults write com.apple.finder CreateDesktop -bool false
 defaults write com.apple.WindowManager StandardHideDesktopIcons -bool true

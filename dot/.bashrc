@@ -17,7 +17,8 @@ shopt -s lithist
 # Append to history immediately
 PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
 
-. "$HOME/.local/bin/env"
+# uv installer's env shim (adds ~/.local/bin to PATH); absent on accounts without uv
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
 
 export NVM_DIR="$HOME/.config/nvm"
 # nvm: lazy-loaded (the real load costs ~150ms at every shell startup).
