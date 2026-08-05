@@ -49,5 +49,84 @@ defaults write NSGlobalDomain InitialKeyRepeat -int 15
 # Disable annoying "click wallpaper hides all apps" feature
 defaults write com.apple.WindowManager EnableStandardClickToShowDesktop -bool false
 
+# --- Settings below were hand-set on the main Mac over the years and captured
+# --- here on 2026-08-05 while bootstrapping the "stream" account (values read
+# --- 1:1 from the live account; only non-factory-default, intentional ones).
+
+# Dark mode
+defaults write NSGlobalDomain AppleInterfaceStyle -string "Dark"
+
+# Auto-hide the Dock
+defaults write com.apple.dock autohide -bool true
+
+# Dock: icon size + magnification on hover
+defaults write com.apple.dock tilesize -int 44
+defaults write com.apple.dock magnification -bool true
+
+# Don't rearrange Spaces by most recent use (predictable desktop layout)
+defaults write com.apple.dock mru-spaces -bool false
+
+# Auto-hide the menu bar
+defaults write NSGlobalDomain _HIHideMenuBar -bool true
+
+# No icons on the Desktop (classic Finder toggle + its Sonoma-era counterpart)
+defaults write com.apple.finder CreateDesktop -bool false
+defaults write com.apple.WindowManager StandardHideDesktopIcons -bool true
+
+# Finder: list view by default; new windows open in Recents
+defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+defaults write com.apple.finder NewWindowTarget -string "PfAF"
+
+# Use F1, F2, etc. as standard function keys
+defaults write NSGlobalDomain com.apple.keyboard.fnState -bool true
+
+# Show scroll bars only while scrolling
+defaults write NSGlobalDomain AppleShowScrollBars -string "WhenScrolling"
+
+# Trackpad / mouse tracking speed
+defaults write NSGlobalDomain com.apple.trackpad.scaling -float 1.5
+defaults write NSGlobalDomain com.apple.mouse.scaling -float 2
+
+# Screenshots: no floating thumbnail preview
+defaults write com.apple.screencapture show-thumbnail -bool false
+
+# Disable the Spotlight hotkey (Cmd+Space belongs to Raycast).
+# Needs a log out/in (or activateSettings -u) to fully apply.
+defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 \
+	'<dict><key>enabled</key><false/></dict>'
+
+# Graecum: polytonic Greek keyboard layout (Ukelele bundle from
+# https://semata.xyz/graecum-mac/ — the Mac alternative to Euclides).
+# Versioned in keyboard-layouts/ next to this script. Installed per-user
+# (~/Library needs no sudo) unless some copy is already visible.
+GRAECUM_SRC="$(cd "$(dirname "$0")" && pwd)/keyboard-layouts/Graecum.bundle"
+if [ -d "$GRAECUM_SRC" ] \
+	&& [ ! -d "/Library/Keyboard Layouts/Graecum.bundle" ] \
+	&& [ ! -d "$HOME/Library/Keyboard Layouts/Graecum.bundle" ]; then
+	mkdir -p "$HOME/Library/Keyboard Layouts"
+	cp -R "$GRAECUM_SRC" "$HOME/Library/Keyboard Layouts/"
+	echo "Installed Graecum.bundle into ~/Library/Keyboard Layouts"
+fi
+
+# Keyboard input sources: Spanish ISO + U.S. + Graecum (Spanish/U.S. captured
+# 1:1 from the live account 2026-08-05; the two IM dicts are the system's own
+# companions; Graecum id/name read from its .keylayout). Switching between
+# them is handled by Karabiner (option+1/2/3 rule — Graecum's declared
+# language grc-Grek-ES-polyton matches the rule's "gr"), NOT by macOS
+# hotkeys — 60/61 stay disabled below. Needs a log out/in to apply.
+defaults write com.apple.HIToolbox AppleEnabledInputSources -array \
+	'<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>87</integer><key>KeyboardLayout Name</key><string>Spanish - ISO</string></dict>' \
+	'<dict><key>Bundle ID</key><string>com.apple.CharacterPaletteIM</string><key>InputSourceKind</key><string>Non Keyboard Input Method</string></dict>' \
+	'<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>0</integer><key>KeyboardLayout Name</key><string>U.S.</string></dict>' \
+	'<dict><key>Bundle ID</key><string>com.apple.PressAndHold</string><key>InputSourceKind</key><string>Non Keyboard Input Method</string></dict>' \
+	'<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>-29262</integer><key>KeyboardLayout Name</key><string>Graecum</string></dict>'
+
+# Disable the macOS input-source hotkeys (ctrl+space etc.) — Karabiner owns
+# language switching, and ctrl+space is too valuable to lose to the IME.
+defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 \
+	'<dict><key>enabled</key><false/></dict>'
+defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 61 \
+	'<dict><key>enabled</key><false/></dict>'
+
 # Killing affected applications
-for app in Safari Finder Dock Mail SystemUIServer; do killall "$app" >/dev/null 2>&1; done
+for app in Safari Finder Dock Mail SystemUIServer ControlCenter; do killall "$app" >/dev/null 2>&1; done
