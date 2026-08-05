@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleIdentifier</key>
+	<string>org.sil.ukelele.keyboardlayout.graecum</string>
+	<key>CFBundleName</key>
+	<string>Graecum</string>
+	<key>CFBundleVersion</key>
+	<string>2.0</string>
+	<key>KLInfo_Graecum</key>
+	<dict>
+		<key>TISInputSourceID</key>
+		<string>org.sil.ukelele.keyboardlayout.graecum.graecum</string>
+		<key>TISIntendedLanguage</key>
+		<string>grc-Grek-ES-polyton</string>
+	</dict>
+</dict>
+</plist>
