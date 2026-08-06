@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+# pc — power the LLM server (RTX 3090) on/off by controlling its Tuya smart plug.
+#
+#   pc on             Power the plug and wait for SSH. With BIOS "AC BACK = Always On"
+#                     the PC boots by itself. No retries: if it doesn't come up,
+#                     just run `pc off && pc on` again.
+#   pc off            Clean remote poweroff, wait for it to go down, then cut the plug.
+#   pc status         Plug state + whether the server answers over SSH.
+#   pc toggle         Flip the plug directly (off->on / on->off), no server logic.
+#   pc adapter on     Turn the plug on directly (no boot wait).
+#   pc adapter off    Turn the plug off directly (no poweroff).
+#
+# Plug credentials (local key is SECRET) live in ~/.config/llm-plug.env
+# (chmod 600, NOT versioned). The tinytuya venv lives in ~/.local/share/llm-plug.
+set -uo pipefail
+
+HOST="${SERVER_HOST:-192.168.0.53}"
+ENV_FILE="${LLM_PLUG_ENV:-$HOME/.config/llm-plug.env}"
+VENV_PY="$HOME/.local/share/llm-plug/venv/bin/python"
+
+die() { echo "pc: $*" >&2; exit 1; }
+
+# Create the venv + install tinytuya on first use (no manual dependency install).
+ensure_venv() {
+  if [ -x "$VENV_PY" ] && "$VENV_PY" -c 'import tinytuya' 2>/dev/null; then return; fi
+  echo "→ Setting up environment (venv + tinytuya, first run only)..." >&2
+  command -v python3 >/dev/null || die "python3 is required in PATH"
+  python3 -m venv "$HOME/.local/share/llm-plug/venv"
+  "$VENV_PY" -m pip install --quiet --upgrade pip
+  "$VENV_PY" -m pip install --quiet tinytuya
+}
+
+# --- plug control via tinytuya (local LAN) ----------------------------------
+# The .env is parsed by Python (NOT sourced by bash) so the local key may contain
+# any special character (], ^, $, etc.) without breaking the shell.
+#   action: on | off | status | state  (state prints "on"/"off")
+plug() {
+  [ -f "$ENV_FILE" ] || die "missing $ENV_FILE (plug credentials)"
+  ensure_venv
+  LLM_PLUG_ENV="$ENV_FILE" "$VENV_PY" - "$1" <<'PY'
+import os, sys, tinytuya
+env = {}
+with open(os.environ["LLM_PLUG_ENV"]) as f:
+    for line in f:
+        line = line.rstrip("\n")
+        if not line.strip() or line.lstrip().startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        env[k.strip()] = v.strip()
+d = tinytuya.OutletDevice(
+    dev_id=env["PLUG_ID"], address=env["PLUG_IP"],
+    local_key=env["PLUG_KEY"], version=float(env.get("PLUG_VERSION", "3.4")))
+d.set_socketRetryLimit(3)
+action = sys.argv[1]
+if action == "on":
+    print(d.turn_on())
+elif action == "off":
+    print(d.turn_off())
+elif action == "status":
+    print(d.status())
+elif action == "state":
+    print("on" if d.status().get("dps", {}).get("1") else "off")
+else:
+    sys.exit(f"plug: invalid action '{action}'")
+PY
+}
+
+ssh_up()   { nc -z -w2 "$HOST" 22 2>/dev/null; }
+wait_ssh() { local i; for ((i=0; i<90; i+=2)); do ssh_up && return 0; sleep 2; done; return 1; }
+wait_down(){ local i; for ((i=0; i<60; i++));  do ssh_up || return 0; sleep 1; done; return 1; }
+
+cmd_on() {
+  echo "→ Powering the plug on..."; plug on >/dev/null
+  echo "→ Waiting for SSH on $HOST..."
+  wait_ssh && { echo "✓ Server up."; return 0; }
+  die "no SSH yet; if it didn't boot, run: pc off && pc on"
+}
+
+cmd_off() {
+  echo "→ Remote poweroff..."
+  ssh-santi-linux 'sudo poweroff' || true     # the SSH session drops as the system goes down
+  echo "→ Waiting for the server to go down..."
+  wait_down || echo "  (still responding; cutting power anyway)"
+  sleep 10   # margin: network drops before the final disk unmount/sync finishes
+  echo "→ Cutting the plug power..."; plug off >/dev/null
+  echo "✓ Server off and unpowered."
+}
+
+cmd_status() {
+  echo -n "Plug: "; plug status
+  echo -n "SSH ($HOST): "; ssh_up && echo "up ✓" || echo "no response ✗"
+}
+
+# Direct plug control (no server poweroff/boot logic) --------------------------
+cmd_adapter() {  # $1 = on|off
+  case "${1:-}" in
+    on)  echo "→ Adapter ON...";  plug on  >/dev/null; echo "✓ Adapter is ON." ;;
+    off) echo "→ Adapter OFF..."; plug off >/dev/null; echo "✓ Adapter is OFF." ;;
+    *)   die "usage: pc adapter on | off" ;;
+  esac
+}
+
+cmd_toggle() {
+  local st; st=$(plug state) || die "could not read adapter state"
+  if [ "$st" = "on" ]; then
+    echo "→ Adapter is ON → turning OFF..."; plug off >/dev/null; echo "✓ Adapter is OFF."
+  else
+    echo "→ Adapter is OFF → turning ON..."; plug on >/dev/null; echo "✓ Adapter is ON."
+  fi
+}
+
+case "${1:-}" in
+  on)      cmd_on ;;
+  off)     cmd_off ;;
+  status)  cmd_status ;;
+  toggle)  cmd_toggle ;;
+  adapter) shift; cmd_adapter "${1:-}" ;;
+  *)       die "usage: pc on | off | status | toggle | adapter <on|off>" ;;
+esac
