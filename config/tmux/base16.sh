@@ -29,6 +29,8 @@ set -g display-panes-colour brightblack
 # provider-prefixed contexts to the bare cluster name: EKS ARNs (any partition)
 # and GKE's gke_<project>_<location>_<cluster>; AKS & friends are already plain names.
 # The current-context guard hides the whole segment (kube.tmux prints a bare ":")
-# when no kube context is configured, e.g. on the stream account.
-tm_kube="#(kubectl config current-context >/dev/null 2>&1 && KUBE_TMUX_SYMBOL_ENABLE=false /bin/bash $XDG_CONFIG_HOME/tmux/plugins/kube-tmux/kube.tmux 250 colour211 cyan | sed -E -e 's|arn:aws[^:]*:eks:[^:]+:[0-9]+:cluster/||' -e 's|\]gke_[^_]+_[^_]+_|]|')"
-set -g status-right "$tm_kube #[fg=brightblack]│#[fg=cyan] %R "
+# when no kube context is configured, e.g. on the stream account. The gray "│"
+# separator is appended by the last sed so it disappears along with the segment
+# (a bare "│" next to the clock otherwise survives the guard).
+tm_kube="#(kubectl config current-context >/dev/null 2>&1 && KUBE_TMUX_SYMBOL_ENABLE=false /bin/bash $XDG_CONFIG_HOME/tmux/plugins/kube-tmux/kube.tmux 250 colour211 cyan | sed -E -e 's|arn:aws[^:]*:eks:[^:]+:[0-9]+:cluster/||' -e 's|\]gke_[^_]+_[^_]+_|]|' -e 's|\$| #[fg=brightblack]│|')"
+set -g status-right "$tm_kube#[fg=cyan] %R "
