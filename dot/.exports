@@ -1,5 +1,12 @@
 #!/bin/bash
-export DOTFILES=$HOME/dotfiles
+# DOTFILES: keep an inherited valid value; otherwise use the checkout path
+# recorded by dotsync (supports clones outside ~/dotfiles); otherwise fall
+# back to the classic default. `read` is a builtin: no forks at shell startup.
+if [ ! -d "$DOTFILES/dot" ] && [ -r "${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/path" ]; then
+    IFS= read -r DOTFILES < "${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/path"
+fi
+[ -d "$DOTFILES/dot" ] || DOTFILES=$HOME/dotfiles
+export DOTFILES
 export OBSIDIAN_VAULT=$HOME/Documents/vault
 export PERSONAL_DIR=$HOME/personal
 export DOTVIM_DIR=$HOME/dotvim

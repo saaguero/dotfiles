@@ -15,8 +15,10 @@ fi
 
 BASE_PATH=$DOTFILES
 
-if [ -z "$BASE_PATH" ]; then
-    BASE_PATH=$(dirname "$0")
+# Same bootstrap fallback as dotsync: self-locate when $DOTFILES is unset or
+# doesn't point at a real checkout (dotdiff always lives in the repo root).
+if [ -z "$BASE_PATH" ] || [ ! -d "$BASE_PATH/dot" ]; then
+    BASE_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 fi
 
 echo -e "${BLUE}Checking differences between dotfiles repo and system files...${NC}"

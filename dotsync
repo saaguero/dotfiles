@@ -10,6 +10,17 @@ fi
 
 BASE_PATH=$DOTFILES
 
+# Bootstrap (chicken-and-egg): $DOTFILES is exported by dot/.exports, which
+# only reaches $HOME after the first dotsync run. If $DOTFILES is unset or
+# invalid but this script is running from a real checkout (./dotsync), use
+# the script's own directory. This also supports clones outside ~/dotfiles.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+if [ -z "$BASE_PATH" ] || [ ! -d "$BASE_PATH/dot" ] || [ ! -f "$BASE_PATH/dotsync" ]; then
+    if [ -d "$SCRIPT_DIR/dot" ] && [ -f "$SCRIPT_DIR/dotsync" ]; then
+        BASE_PATH=$SCRIPT_DIR
+    fi
+fi
+
 # Safety guard: an empty/invalid $DOTFILES turns "$BASE_PATH/bin" into "/bin",
 # so update_files would copy ALL of /bin into ~/.local/bin -- broken arm64e
 # binaries that macOS SIGKILLs on exec (breaks `bash`, the VSCode terminal,
@@ -108,6 +119,14 @@ copy() {
 }
 
 log "base_path: $BASE_PATH"
+
+# Record where the checkout lives so dot/.exports can set $DOTFILES correctly
+# even for clones outside ~/dotfiles (read back with a bash builtin, no forks).
+log "recording checkout path in $XDG_CONFIG_HOME/dotfiles/path"
+if [[ $dry_run == "0" ]]; then
+    mkdir -p "$XDG_CONFIG_HOME/dotfiles"
+    printf '%s\n' "$BASE_PATH" > "$XDG_CONFIG_HOME/dotfiles/path"
+fi
 
 update_files $BASE_PATH/bin $HOME/.local/bin
 update_files $BASE_PATH/dot $HOME
