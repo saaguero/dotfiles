@@ -97,6 +97,8 @@
 	# Make `git rebase` safer on OS X
 	# More info: <http://www.git-tower.com/blog/make-git-rebase-safe-on-osx/>
 	trustctime = false
+	# Show non-ASCII filenames as-is (UTF-8) instead of octal-escaped
+	quotepath = false
 	# Global pre-commit hooks (e.g. gitleaks secret scan). The dir + hook
 	# scripts live in this repo at config/git/hooks/ and deploy via dotsync.
 	hooksPath = ~/.config/git/hooks
