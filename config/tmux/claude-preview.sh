@@ -34,6 +34,29 @@ if [[ "$pane" != %* ]]; then
   fi
   branch=""
   [ -d "$cwd" ] && branch="$(git -C "$cwd" branch --show-current 2>/dev/null)"
+
+  # search> mode (picker's content grep): show the snippets around each match
+  # instead of the conversation tail, so it's obvious WHY this entry surfaced.
+  # fzf exports FZF_PROMPT/FZF_QUERY to the preview process; the picker's
+  # --pattern turns the query into the same accent-insensitive alternation.
+  if [[ "${FZF_PROMPT:-}" == search* && -n "${FZF_QUERY:-}" ]]; then
+    pat="$("$HOME/.config/tmux/claude-picker.sh" --pattern)"
+    if [ -n "$pat" ]; then
+      n="$(rg -ci --no-messages -e "$pat" "$jsonl")"
+      printf '🔎 %s matching lines · %s%s\n' "${n:-0}" "$ago" "${branch:+ · $branch}"
+      printf '%s%s%s\n' "$C_DIM" "${cwd/#$HOME/\~}" "$C_RESET"
+      printf '%s────────────────────────────────────────%s\n' "$C_DIM" "$C_RESET"
+      # Context slices around each hit (jsonl lines are huge, -o keeps them
+      # sane); unescape \n \t \", then paint the matched terms yellow.
+      # -Mutf8: the interpolated pattern is program text, same trap as the
+      # picker's expand_terms.
+      rg -io --no-messages -e ".{0,80}(${pat}).{0,140}" "$jsonl" | head -60 \
+        | perl -CS -Mutf8 -pe 's/\\[ntr]/ /g; s/\\"/"/g;
+                        s/('"$pat"')/\e[33m$1\e[0m/gi; $_ .= "\n"'
+      exit 0
+    fi
+  fi
+
   printf '↺ resume · %s%s\n' "$ago" "${branch:+ · $branch}"
   printf '%s%s%s\n' "$C_DIM" "${cwd/#$HOME/\~}" "$C_RESET"
   printf '%s────────────────────────────────────────%s\n' "$C_DIM" "$C_RESET"

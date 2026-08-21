@@ -11,6 +11,12 @@
 #            `claude --resume <id>` in yolo mode: a NEW WINDOW in the session
 #            already rooted at the conversation's cwd if one exists, otherwise a
 #            NEW tmux session in that cwd.
+#   search>  (ctrl-f) same list, but the query greps the CONTENT of every
+#            transcript (rg, live on each keystroke -- 474MB takes ~0.25s, no
+#            index needed) instead of fzf filtering the visible titles. Terms
+#            are ANDed per file and accent-insensitive both ways ("coleccion"
+#            finds "colección" and vice versa; fzf's own latin normalization
+#            only works plain->accented). Enter resumes, same as resume mode.
 #
 # The hidden first field disambiguates what Enter got: a %pane_id -> jump,
 # a session uuid -> resume. claude-preview.sh branches on the same value.
@@ -18,8 +24,10 @@
 PANES="$HOME/.config/tmux/claude-panes.sh"
 PREVIEW="$HOME/.config/tmux/claude-preview.sh"
 REFRESH_SECS=5
-HEADER_LIVE='enter: jump | ctrl-r: resume list | ctrl-u/d: scroll preview'
-HEADER_RESUME='enter: resume in NEW session, yolo | ctrl-r: live agents'
+SEARCH_DEBOUNCE_SECS=0.4
+HEADER_LIVE='enter: jump | ctrl-r: resume list | ctrl-f: content search | ctrl-u/d: scroll preview'
+HEADER_RESUME='enter: resume in NEW session, yolo | ctrl-f: content search | ctrl-r: live agents'
+HEADER_SEARCH='type 3+ chars: grep INSIDE all conversations | enter: resume (● live: jump) | ctrl-f: back'
 
 build_display() {
   # "● topic   session · agent": the conversation is the primary field (what
@@ -44,6 +52,24 @@ build_display() {
     }'
 }
 
+expand_terms() {
+  # One accent-insensitive rg pattern PER LINE from the words of $1: query is
+  # lowercased (rg -i covers case anyway), regex-escaped, then every vowel/n --
+  # plain or accented -- becomes a class matching both spellings, in a SINGLE
+  # pass (sequential s/// would re-expand the inserted classes). perl -CS
+  # decodes the STREAMS only; -Mutf8 is also needed so the accented literals
+  # in the program text itself are characters, not byte pairs (without it the
+  # classes come out as mojibake and accented queries match nothing).
+  printf '%s' "$1" | perl -CS -Mutf8 -ne '
+    BEGIN { %m = ("a","[aá]","á","[aá]","e","[eé]","é","[eé]","i","[ií]","í","[ií]",
+                  "o","[oó]","ó","[oó]","u","[uúü]","ú","[uúü]","ü","[uúü]","n","[nñ]","ñ","[nñ]") }
+    for my $t (split " ", lc $_) {
+      $t = quotemeta $t;
+      $t =~ s/\\?([aáeéiíoóuúünñ])/$m{$1}/g;
+      print "$t\n";
+    }'
+}
+
 build_resume_list() {
   # session_id <TAB> "↺ title   project · age" <TAB> cwd, newest first.
   # One perl pass over the first+last 32KB of every transcript: session id
@@ -52,13 +78,31 @@ build_resume_list() {
   # occurrence wins since it gets re-generated as the conversation evolves).
   # Fallback title: the first real user prompt (skipping the "Caveat:"
   # preamble of previously-resumed sessions, slash-command records, and the
-  # rename-to-topic hook's headless haiku prompts).
-  local live="" f pid sid
+  # rename-to-topic hook's headless haiku prompts). Args, if any, restrict the
+  # scan to those transcript files (the search mode passes its rg matches).
+  #
+  # Live sessions are normally skipped (they belong to the agents view), but
+  # with INCLUDE_LIVE=1 (search mode) a live match shows with a green dot and
+  # its PANE id as the hidden key, so Enter jumps instead of resuming --
+  # otherwise a content hit in a live conversation silently vanishes.
+  local live="" panemap="" f pid sid tty pane
+  local files=("$@")
+  [ "${#files[@]}" -gt 0 ] || files=("$HOME"/.claude/projects/*/*.jsonl)
   for f in "$HOME"/.claude/sessions/*.json; do
     [ -r "$f" ] || continue
     pid="$(jq -r '.pid // empty' "$f" 2>/dev/null)"
     sid="$(jq -r '.sessionId // empty' "$f" 2>/dev/null)"
-    [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null && live="$live $sid"
+    [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null || continue
+    live="$live $sid"
+    if [ -n "${INCLUDE_LIVE:-}" ]; then
+      # sid -> pane id, via the claude process's tty (headless sessions have
+      # no pane and stay hidden even in search mode).
+      tty="$(ps -o tty= -p "$pid" 2>/dev/null | awk 'NF {print $1; exit}')"
+      [ -n "$tty" ] && [ "$tty" != "??" ] || continue
+      pane="$(tmux list-panes -a -F '#{pane_tty} #{pane_id}' 2>/dev/null \
+        | awk -v t="/dev/$tty" '$1 == t {print $2; exit}')"
+      [ -n "$pane" ] && panemap="$panemap $sid=$pane"
+    fi
   done
 
   perl -e '
@@ -98,31 +142,94 @@ build_resume_list() {
       $cwd //= ""; $cwd =~ s/\\\//\//g;
       my $m = (stat $f)[9] // 0;
       print "$m\t$sid\t$cwd\t$title\n";
-    }' "$HOME"/.claude/projects/*/*.jsonl 2>/dev/null \
+    }' "${files[@]}" 2>/dev/null \
   | sort -rn \
-  | LIVE="$live" perl -CS -F'\t' -lane '
-      BEGIN { %alive = map { $_ => 1 } split " ", ($ENV{LIVE} // ""); $now = time }
-      next if $alive{$F[1]};
+  | LIVE="$live" PANEMAP="$panemap" perl -CS -F'\t' -lane '
+      BEGIN {
+        %alive = map { $_ => 1 } split " ", ($ENV{LIVE} // "");
+        %pane  = map { split /=/ } split " ", ($ENV{PANEMAP} // "");
+        $now = time;
+      }
+      next if $alive{$F[1]} && !$pane{$F[1]};
       my $t = length($F[3]) > 80 ? substr($F[3], 0, 79) . "\x{2026}" : $F[3];
       push @R, [@F]; push @T, $t;
       $w = length($t) if length($t) > $w;
       END {
-        my ($d, $r) = ("\e[90m", "\e[0m");
+        my ($g, $d, $r) = ("\e[32m", "\e[90m", "\e[0m");
         for my $i (0 .. $#R) {
           my ($m, $sid, $cwd) = @{$R[$i]};
           my $age = $now - $m;
           my $a = $age < 60 ? "now" : $age < 3600 ? int($age/60) . "m"
                 : $age < 86400 ? int($age/3600) . "h" : int($age/86400) . "d";
           (my $proj = $cwd) =~ s{/+$}{}; $proj =~ s{.*/}{}; $proj = "?" if $proj eq "";
-          printf "%s\t%s\x{21BA}%s %s%s  %s%s \x{B7} %s%s\t%s\n",
-            $sid, $d, $r, $T[$i], " " x ($w - length($T[$i])), $d, $proj, $a, $r, $cwd;
+          my ($key, $dot) = $pane{$sid}
+            ? ($pane{$sid}, "$g\x{25CF}$r") : ($sid, "$d\x{21BA}$r");
+          printf "%s\t%s %s%s  %s%s \x{B7} %s%s\t%s\n",
+            $key, $dot, $T[$i], " " x ($w - length($T[$i])), $d, $proj, $a, $r, $cwd;
         }
       }'
+}
+
+build_search_list() {
+  # Content search: narrow the transcript set with one rg -li pass per term
+  # (AND across terms within a file), then render the survivors through the
+  # normal resume-list pipeline (title, project, age, newest first). Under 3
+  # typed chars just show the full list -- same view as resume mode. $FZF_QUERY
+  # comes from fzf's environment (the windowizer's {q}-quoting lesson: never
+  # interpolate the query into an action string). Unquoted mapfile input is
+  # safe: project dir encoding replaces every odd char with dashes, no spaces.
+  local q="${FZF_QUERY:-}" typed="${FZF_QUERY:-}" pat
+  typed="${typed// /}"
+  if [ "${#typed}" -lt 3 ]; then INCLUDE_LIVE=1 build_resume_list; return; fi
+  local files=("$HOME"/.claude/projects/*/*.jsonl)
+  while IFS= read -r pat; do
+    [ -n "$pat" ] || continue
+    mapfile -t files < <(rg -li --no-messages -e "$pat" "${files[@]}" 2>/dev/null)
+    [ "${#files[@]}" -gt 0 ] || return 0
+  done < <(expand_terms "$q")
+  INCLUDE_LIVE=1 build_resume_list "${files[@]}"
 }
 
 case "${1:-}" in
   --list)        build_display; exit 0 ;;
   --resume-list) build_resume_list; exit 0 ;;
+  --search-list) build_search_list; exit 0 ;;
+  --pattern)
+    # Alternation of all expanded terms, for the preview's match extraction.
+    expand_terms "${FZF_QUERY:-}" | paste -sd'|' - | sed 's/^|*//;s/|*$//'
+    exit 0
+    ;;
+  --search-change)
+    # change transform: live regrep only in search mode (elsewhere the query
+    # is fzf's own filter and reloading would fight it). The leading sleep is
+    # the standard fzf debounce (its own ADVANCED.md ripgrep recipe): a new
+    # keystroke kills the in-flight reload, so only the pause after the LAST
+    # keystroke actually runs the grep -- typing stays smooth.
+    case "${FZF_PROMPT:-}" in
+      search*) printf 'reload-sync(sleep %s; %s --search-list)+refresh-preview' \
+                 "$SEARCH_DEBOUNCE_SECS" "$0" ;;
+    esac
+    exit 0
+    ;;
+  --toggle-search)
+    # ctrl-f transform: resume/agents -> search (fzf filtering off, keystrokes
+    # feed the regrep), search -> resume (filtering back on).
+    #
+    # +toggle-track: fzf 0.74.1 DROPS typed keys while a reload is in flight
+    # when --track is combined with --id-nth (either flag alone is fine) --
+    # in search mode, where every keystroke reloads, typing "kiosco" landed
+    # as "kc". Tracking only matters in the agents view (keep the cursor on
+    # the same pane across auto-refreshes), so it goes OFF entering search>
+    # and back ON leaving. Same invariant style as the sessionizer's try>
+    # sort toggle: EVERY transition in/out of search> toggles exactly once
+    # (entry here, exits here and in --toggle-mode's search branch).
+    if [[ "${FZF_PROMPT:-}" == search* ]]; then
+      printf 'change-prompt[resume> ]+change-header[%s]+enable-search+clear-query+toggle-track+reload[%s --resume-list]+first' "$HEADER_RESUME" "$0"
+    else
+      printf 'change-prompt[search> ]+change-header[%s]+disable-search+clear-query+toggle-track+reload-sync[%s --search-list]+first' "$HEADER_SEARCH" "$0"
+    fi
+    exit 0
+    ;;
   --auto-refresh)
     # every(N) transform: only the live view auto-reloads; the resume list is
     # static history and reloading it would also reset the cursor.
@@ -136,6 +243,11 @@ case "${1:-}" in
     # delimiters -- the header text contains parentheses-unsafe characters).
     if [[ "${FZF_PROMPT:-}" == agents* ]]; then
       printf 'change-prompt[resume> ]+change-header[%s]+reload[%s --resume-list]+first' "$HEADER_RESUME" "$0"
+    elif [[ "${FZF_PROMPT:-}" == search* ]]; then
+      # leaving search: re-enable fzf filtering, drop the content query (as a
+      # title filter it would silently hide everything), re-enable tracking
+      # (see --toggle-search's toggle-track invariant).
+      printf 'change-prompt[agents> ]+change-header[%s]+enable-search+clear-query+toggle-track+reload-sync[%s --list]+first' "$HEADER_LIVE" "$0"
     else
       printf 'change-prompt[agents> ]+change-header[%s]+reload-sync[%s --list]+first' "$HEADER_LIVE" "$0"
     fi
@@ -161,6 +273,8 @@ sel="$(build_display | fzf \
   --bind 'ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down' \
   --bind "every(${REFRESH_SECS}):transform:$0 --auto-refresh" \
   --bind "ctrl-r:transform:$0 --toggle-mode" \
+  --bind "ctrl-f:transform:$0 --toggle-search" \
+  --bind "change:transform:$0 --search-change" \
 )" || exit 0
 
 IFS=$'\t' read -r key _ cwd <<EOF
