@@ -158,7 +158,3 @@
 	enabled = true
 [gpg]
 	format = ssh
-[gpg "ssh"]
-	# without this, git cannot verify its own SSH signatures locally
-	# (`git log --show-signature` reports N); GitHub is unaffected
-	allowedSignersFile = ~/.ssh/allowed_signers
