@@ -65,11 +65,12 @@ export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1  # local mode: no cloud teleme
 export CLAUDE_CODE_ATTRIBUTION_HEADER=0            # avoids a header that invalidates the KV cache (~90% slower)
 export DISABLE_AUTOUPDATER=1                       # no auto-update in local mode
 
-# Session-scoped settings (same --settings pattern as the cczype alias):
-# - zype-dev-assistant plugin stays off (explicit here even though the global default is off)
+# Session-scoped settings:
+# - Zype plugins stay off (the global default is on, but its MCP servers add ~60k
+#   context tokens, too much for the local server window)
 # - deny the built-in claude-api skill: it dumps ~174k tokens of API reference docs into
 #   context, which overflows the local server window (see BITACORA 2026-07-06)
-LOCAL_SETTINGS='{"enabledPlugins":{"zype-dev-assistant@zype-dev-assistant":false},"permissions":{"deny":["Skill(claude-api)"]}}'
+LOCAL_SETTINGS='{"enabledPlugins":{"zype-dev-assistant@zype-dev-assistant":false,"zype-infra-assistant@zype-infra-assistant":false},"permissions":{"deny":["Skill(claude-api)"]}}'
 
 echo "# claude-local -> $LLM_HOST   (main=$MAIN, fast=$FAST)  [skip-permissions ON, claude-api skill OFF, zype plugin OFF]" >&2
 exec claude --dangerously-skip-permissions --settings "$LOCAL_SETTINGS" "$@"
