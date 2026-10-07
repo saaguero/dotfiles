@@ -292,3 +292,15 @@ y() {
   rm -f -- "$tmp"
 }
 
+
+# Claude Code. Under ~/work, also pass --add-dir ~/work: project settings
+# (enabledPlugins) are read only from the start folder, so child repos would
+# miss the Zype plugins. --add-dir is variadic, so it must come before another
+# option, not before "$@".
+cc() {
+  local extra=()
+  if [[ "$PWD" == "$HOME/work/"* ]]; then
+    extra=(--add-dir "$HOME/work")
+  fi
+  claude "${extra[@]}" --dangerously-skip-permissions "$@"
+}
