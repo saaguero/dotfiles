@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# New work stream: a tmux session named after the stream, rooted at ~/work,
+# with cc (claude-yolo) started in its first window. If the session already
+# exists, just switch to it. Bound to prefix+O (Ghostty Cmd+O).
+#
+# Usage: tmux-workstream NAME [--no-switch]   (--no-switch: create only, for tests)
+
+# same sanitizing as tmux-sessionizer (tmux rejects . and : in session names)
+name="${1//[ .:]/_}"
+[[ -n $name ]] || exit 0
+
+if ! tmux has-session -t "=$name" 2>/dev/null; then
+    # A login shell first, then cc typed into it: when Claude exits, the
+    # window keeps its shell instead of closing the session.
+    pane=$(tmux new-session -d -s "$name" -c "$HOME/work" -P -F '#{pane_id}')
+    tmux send-keys -t "$pane" cc Enter
+fi
+
+[[ ${2:-} == --no-switch ]] || tmux switch-client -t "=$name"

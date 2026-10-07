@@ -68,6 +68,8 @@ keybind = cmd+p=esc:qP
 # Sessions
 keybind = cmd+n=esc:qN
 keybind = cmd+shift+n=esc:qM
+# new work stream: session rooted at ~/work with cc running (prefix+O)
+keybind = cmd+o=esc:qO
 keybind = cmd+s=esc:qs
 keybind = cmd+shift+w=esc:qX
 keybind = cmd+shift+r=esc:q$

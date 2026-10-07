@@ -25,11 +25,11 @@ set -euo pipefail
 # (server environment has a minimal PATH, no shell profile involved).
 PATH="$HOME/.local/bin:$HOME/.opencode/bin:$PATH"
 
-# Agent selection: no args (or "cc") = claude in "cc" mode (~/.aliases cc;
-# aliases don't exist in scripts, so it's spelled out). Anything else is
+# Agent selection: no args (or "cc") = claude-yolo, the script behind the cc
+# shell function (functions don't exist in scripts). Anything else is
 # taken as a literal command: opencode, claude-local, ...
 case "${1:-}" in
-	""|cc) AGENT="claude --dangerously-skip-permissions" ;;
+	""|cc) AGENT="claude-yolo" ;;
 	*)     AGENT="$*" ;;
 esac
 DIR="$PWD"

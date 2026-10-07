@@ -13,7 +13,7 @@
 # NOTE: the fast/background model follows the main one by default on purpose — mixing two
 #   models makes llama-swap reload weights on every background request (15-40s swap thrash).
 
-LLM_HOST="${LLM_HOST:-http://192.168.0.53:8080}"
+LLM_HOST="${LLM_HOST:-http://$(llm-host):8080}"   # tailnet IP first, LAN fallback (see llm-host)
 MAIN="${CLAUDE_LOCAL_MODEL:-qwopus3.6-27b}"
 
 # NOTE: no short -p alias — it would shadow claude's own -p/--print flag.
@@ -66,11 +66,19 @@ export CLAUDE_CODE_ATTRIBUTION_HEADER=0            # avoids a header that invali
 export DISABLE_AUTOUPDATER=1                       # no auto-update in local mode
 
 # Session-scoped settings:
-# - Zype plugins stay off (the global default is on, but its MCP servers add ~60k
-#   context tokens, too much for the local server window)
+# - every installed plugin stays off: plugin MCP servers can add ~60k context
+#   tokens, too much for the local server window. The ids come from the install
+#   records, so this script names no plugin and stays current on its own.
 # - deny the built-in claude-api skill: it dumps ~174k tokens of API reference docs into
 #   context, which overflows the local server window (see BITACORA 2026-07-06)
-LOCAL_SETTINGS='{"enabledPlugins":{"zype-dev-assistant@zype-dev-assistant":false,"zype-infra-assistant@zype-infra-assistant":false},"permissions":{"deny":["Skill(claude-api)"]}}'
+LOCAL_SETTINGS=$(jq -c '{
+    enabledPlugins: ((.plugins // {}) | keys | map({(.): false}) | add // {}),
+    permissions: {deny: ["Skill(claude-api)"]}
+  }' "$HOME/.claude/plugins/installed_plugins.json" 2>/dev/null)
+if [[ -z $LOCAL_SETTINGS ]]; then
+  echo "claude-local: could not read installed plugins, plugins stay as configured" >&2
+  LOCAL_SETTINGS='{"permissions":{"deny":["Skill(claude-api)"]}}'
+fi
 
-echo "# claude-local -> $LLM_HOST   (main=$MAIN, fast=$FAST)  [skip-permissions ON, claude-api skill OFF, zype plugin OFF]" >&2
+echo "# claude-local -> $LLM_HOST   (main=$MAIN, fast=$FAST)  [skip-permissions ON, claude-api skill OFF, plugins OFF]" >&2
 exec claude --dangerously-skip-permissions --settings "$LOCAL_SETTINGS" "$@"

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Claude Code in yolo mode. Shared by the cc shell function, ide and the tmux
+# agent picker, so every launch path behaves the same.
+#
+# Under ~/work, also pass --add-dir ~/work: project settings (enabledPlugins)
+extra=()
+if [[ "$PWD" == "$HOME/work/"* ]]; then
+  extra=(--add-dir "$HOME/work")
+fi
+exec claude "${extra[@]}" --dangerously-skip-permissions "$@"

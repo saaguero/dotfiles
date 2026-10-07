@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Print the reachable address of the LLM server (RTX 3090 Linux box).
+# Order: $SERVER_HOST override > tailnet IP (works anywhere Tailscale is up,
+# and at home it routes direct over the LAN, ~0 overhead) > LAN IP fallback
+# (covers Tailscale being off on this Mac while at home).
+# Note: if the server is powered OFF, both probes fail and this prints the
+# LAN IP; callers that poll (e.g. `pc on`) should re-run llm-host per probe.
+TS_IP="100.71.4.115"
+LAN_IP="192.168.0.53"
+
+if [ -n "${SERVER_HOST:-}" ]; then
+  echo "$SERVER_HOST"
+  exit 0
+fi
+
+if nc -z -w1 "$TS_IP" 22 2>/dev/null; then
+  echo "$TS_IP"
+else
+  echo "$LAN_IP"
+fi
