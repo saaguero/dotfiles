@@ -5,6 +5,9 @@
 require("hs.ipc")
 hs.ipc.cliInstall("/opt/homebrew")
 
+-- Start at login: the mic priority below must always be running.
+hs.autoLaunch(true)
+
 local log = hs.logger.new("streamRouter", "info")
 
 streamRouter = { active = false }
@@ -37,5 +40,8 @@ function streamRouterSet(on)
   hs.alert.show(on and "Stream router ON — new windows → vertical" or "Stream router OFF")
   log.i("streamRouter.active = " .. tostring(on))
 end
+
+-- Default input priority (BOYA jack > MacBook mic with lid open > Link 2C).
+micPriority = require("mic_priority")
 
 hs.alert.show("Hammerspoon loaded")
