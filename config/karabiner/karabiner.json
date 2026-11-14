@@ -374,15 +374,12 @@
                         ]
                     },
                     {
-                        "description": "Use option+1/2/3/6/7/8 to switch language.",
+                        "description": "Use option+1/2/3/j/k/l to switch language.",
                         "manipulators": [
                             {
                                 "from": {
                                     "key_code": "1",
-                                    "modifiers": {
-                                        "mandatory": ["option"],
-                                        "optional": ["any"]
-                                    }
+                                    "modifiers": { "mandatory": ["option"] }
                                 },
                                 "to": [{ "select_input_source": { "language": "en" } }],
                                 "type": "basic"
@@ -390,10 +387,7 @@
                             {
                                 "from": {
                                     "key_code": "2",
-                                    "modifiers": {
-                                        "mandatory": ["option"],
-                                        "optional": ["any"]
-                                    }
+                                    "modifiers": { "mandatory": ["option"] }
                                 },
                                 "to": [{ "select_input_source": { "language": "es" } }],
                                 "type": "basic"
@@ -401,43 +395,31 @@
                             {
                                 "from": {
                                     "key_code": "3",
-                                    "modifiers": {
-                                        "mandatory": ["option"],
-                                        "optional": ["any"]
-                                    }
+                                    "modifiers": { "mandatory": ["option"] }
                                 },
                                 "to": [{ "select_input_source": { "language": "gr" } }],
                                 "type": "basic"
                             },
                             {
                                 "from": {
-                                    "key_code": "6",
-                                    "modifiers": {
-                                        "mandatory": ["option"],
-                                        "optional": ["any"]
-                                    }
+                                    "key_code": "j",
+                                    "modifiers": { "mandatory": ["option"] }
                                 },
                                 "to": [{ "select_input_source": { "language": "en" } }],
                                 "type": "basic"
                             },
                             {
                                 "from": {
-                                    "key_code": "7",
-                                    "modifiers": {
-                                        "mandatory": ["option"],
-                                        "optional": ["any"]
-                                    }
+                                    "key_code": "k",
+                                    "modifiers": { "mandatory": ["option"] }
                                 },
                                 "to": [{ "select_input_source": { "language": "es" } }],
                                 "type": "basic"
                             },
                             {
                                 "from": {
-                                    "key_code": "8",
-                                    "modifiers": {
-                                        "mandatory": ["option"],
-                                        "optional": ["any"]
-                                    }
+                                    "key_code": "l",
+                                    "modifiers": { "mandatory": ["option"] }
                                 },
                                 "to": [{ "select_input_source": { "language": "gr" } }],
                                 "type": "basic"
