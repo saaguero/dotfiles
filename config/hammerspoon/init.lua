@@ -45,3 +45,12 @@ end
 micPriority = require("mic_priority")
 
 hs.alert.show("Hammerspoon loaded")
+
+-- Voice lookup (hold Right Option + speak), loaded from its own project: ~/projects/voice-lookup
+do
+  local dir = os.getenv("HOME") .. "/projects/voice-lookup"
+  if hs.fs.attributes(dir .. "/voice_lookup.lua") then
+    package.path = dir .. "/?.lua;" .. package.path
+    voiceLookup = require("voice_lookup")
+  end
+end

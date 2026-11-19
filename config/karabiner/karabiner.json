@@ -9,6 +9,34 @@
                 },
                 "rules": [
                     {
+                        "description": "Voice lookup: Right Option -> F18 everywhere while voice_lookup=1 (variable set by Hammerspoon when the tool is on)",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "name": "voice_lookup",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "right_option",
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "f18"
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Ghostty: Right Option -> Space (Claude Code voice push-to-talk); elsewhere Right Option stays Wispr Flow PTT",
                         "manipulators": [
                             {
